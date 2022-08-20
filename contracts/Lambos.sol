@@ -28,8 +28,6 @@ contract Lambos is ERC721, ERC721Enumerable, Pausable, AccessControl {
     string[] private attributeKeys;
     mapping(uint => Rent) private _rents;
 
-    error LamboDoesNotExist();
-
     constructor() ERC721("WenLambo", "LAMBO") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
@@ -81,10 +79,10 @@ contract Lambos is ERC721, ERC721Enumerable, Pausable, AccessControl {
         return _rents[tokenId].inProgress;
     }
 
-    function rentInfo(uint tokenId) external view returns(address originalOwner, address currentOwner, uint endsAt) {
+    function rentInfo(uint tokenId) external view returns(address originalOwner, uint endsAt) {
         Rent storage rent = _rents[tokenId];
         require(rent.inProgress, "Not rented currently.");
-        return (rent.owner, ownerOf(tokenId), rent.endsAt);
+        return (rent.owner, rent.endsAt);
     }
 
     function returnRented(uint tokenId) external {
