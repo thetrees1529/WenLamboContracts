@@ -3,12 +3,7 @@ pragma solidity 0.8.16;
 
 import "@thetrees1529/solutils/contracts/payments/Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-
-interface Lambos {
-
-    function mint(address to, uint numberOf) external;
-
-}
+import "./Lambos.sol";
 
 contract Mint is Ownable, Payments {
     uint public mintPrice;

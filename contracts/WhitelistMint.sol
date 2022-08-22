@@ -3,13 +3,9 @@ pragma solidity 0.8.16;
 
 import "@thetrees1529/solutils/contracts/payments/Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./WhitelistTickets.sol";
 import "./Mint.sol";
 
-interface WhitelistTickets {
-
-    function burn(address from, uint numberOf) external;
-
-}
 
 contract WhitelistMint is Mint {
 
