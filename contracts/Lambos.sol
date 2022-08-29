@@ -59,14 +59,14 @@ contract Lambos is ERC721, ERC721Enumerable, Pausable, AccessControl {
     }
 
     //renting
-    function rentTo(uint tokenId, address to, uint endsAt) external onlyRole(RENTER_ROLE) {
+    function rentTo(uint tokenId, address to, uint period) external onlyRole(RENTER_ROLE) {
         Rent storage rent = _rents[tokenId];
         require(!rent.inProgress, "Currently rented.");
         address owner = ownerOf(tokenId);
         rent.owner = owner;
-        rent.endsAt = endsAt;
-        rent.inProgress = true;
+        rent.endsAt = block.timestamp + period;
         _transfer(owner, to, tokenId);
+        rent.inProgress = true;
     }
 
     function cancelRent(uint tokenId) external onlyRole(RENTER_ROLE) {
@@ -143,12 +143,16 @@ contract Lambos is ERC721, ERC721Enumerable, Pausable, AccessControl {
     // hooks / overrides
 
     function _mint(address to, uint tokenId) internal override {
-        require(totalSupply() < MAX_LAMBOS, "Max supply reached.");
         super._mint(to, tokenId);
+        require(totalSupply() <= MAX_LAMBOS, "Max supply reached.");
     }
 
     function _baseURI() internal override view returns(string memory) {
         return baseUri;
+    }
+
+    function _transfer(address from, address to, uint tokenId) internal override {
+        super._transfer(from, to, tokenId);
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId)
