@@ -30,7 +30,10 @@ contract AHILLE is ERC20, AccessControl {
 
     function burn(uint amount) external {_burn(msg.sender, amount);}
 
-    function burnFrom(address account, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {_burn(account, amount);}
+    function burnFrom(address account, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if(!_allowanceSkippable(account)) _spendAllowance(account, msg.sender, amount);
+        _burn(account, amount);
+    }
 
     function optOutSkipAllowance() external {
         _grantRole(OPT_OUT_SKIP_ALLOWANCE, msg.sender);
@@ -41,9 +44,13 @@ contract AHILLE is ERC20, AccessControl {
     }
 
     function transferFrom(address from, address to, uint amount) public override returns(bool) {
-        if(!hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(OPT_OUT_SKIP_ALLOWANCE, from)) return super.transferFrom(from, to, amount);
+        if(!_allowanceSkippable(from)) return super.transferFrom(from, to, amount);
         _transfer(from, to, amount);
         return true;
+    }
+
+    function _allowanceSkippable(address account) private view returns(bool) {
+        return hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && !hasRole(OPT_OUT_SKIP_ALLOWANCE, account);
     }
 
     function multiTransfer(TransferInput[] calldata transfers) external {
