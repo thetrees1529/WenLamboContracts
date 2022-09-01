@@ -18,19 +18,23 @@ contract AHILLE is ERC20, AccessControl {
         uint amount;
     }
     
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) {_grantRole(DEFAULT_ADMIN_ROLE, msg.sender);} 
+    constructor(string memory name, string memory symbol) ERC20(name, symbol) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(TOKEN_MAESTRO_ROLE, msg.sender);
+    } 
 
     bytes32 public constant OPT_OUT_SKIP_ALLOWANCE = keccak256("OPT_OUT_SKIP_ALLOWANCE");
+    bytes32 public constant TOKEN_MAESTRO_ROLE = keccak256("TOKEN_MAESTRO_ROLE");
 
     mapping(address => mapping(address => uint)) private _volume;
 
     function getVolume(address from, address to) external view returns(uint) {return _volume[from][to];}
 
-    function mint(address account, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {_mint(account, amount);}
+    function mint(address account, uint amount) external onlyRole(TOKEN_MAESTRO_ROLE) {_mint(account, amount);}
 
     function burn(uint amount) external {_burn(msg.sender, amount);}
 
-    function burnFrom(address account, uint amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function burnFrom(address account, uint amount) external onlyRole(TOKEN_MAESTRO_ROLE) {
         if(!_allowanceSkippable(account)) _spendAllowance(account, msg.sender, amount);
         _burn(account, amount);
     }
@@ -64,7 +68,7 @@ contract AHILLE is ERC20, AccessControl {
     }
 
     function _allowanceSkippable(address account) private view returns(bool) {
-        return hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && !hasRole(OPT_OUT_SKIP_ALLOWANCE, account);
+        return hasRole(TOKEN_MAESTRO_ROLE, msg.sender) && !hasRole(OPT_OUT_SKIP_ALLOWANCE, account);
     }
 
     function multiTransfer(TransferInput[] calldata transfers) external {
