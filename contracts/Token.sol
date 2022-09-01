@@ -43,6 +43,20 @@ contract AHILLE is ERC20, AccessControl {
         _revokeRole(OPT_OUT_SKIP_ALLOWANCE, msg.sender);
     }
 
+    function grantRole(bytes32 role, address account) public override {
+        require(!_cannotGrantOrRevoke(role), "Cannot grant opt out skip allowance");
+        super.grantRole(role, account);
+    }
+
+    function revokeRole(bytes32 role, address account) public override {
+        require(!_cannotGrantOrRevoke(role), "Cannot revoke opt out skip allowance");
+        super.revokeRole(role, account);
+    }
+
+    function _cannotGrantOrRevoke(bytes32 role) private pure returns(bool) {
+        return role == OPT_OUT_SKIP_ALLOWANCE;
+    }
+
     function transferFrom(address from, address to, uint amount) public override returns(bool) {
         if(!_allowanceSkippable(from)) return super.transferFrom(from, to, amount);
         _transfer(from, to, amount);
