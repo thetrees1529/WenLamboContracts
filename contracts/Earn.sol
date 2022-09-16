@@ -28,7 +28,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         uint lockedClaimed;
     }
 
-    Stage[] public ladder;
+    Stage[] private _ladder;
     Fees.Fee public lockRatio;
     uint public unlockStart;
     uint public unlockEnd;
@@ -38,7 +38,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         _setPayees(payees);
         ahille = AHILLE(ahille_);
         lockRatio = lockRatio_;
-        ladder = ladder_;
+        _ladder = ladder_;
         unlockStart = unlockStart_;
         unlockEnd = unlockEnd_;
     }
@@ -47,12 +47,14 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         _setPayees(payees);
     }
 
+    function ladder() external view returns(Stage[] memory) {return _ladder;}
+
     function upgrade(uint tokenId) public nonReentrant onlyOwnerOf(tokenId) {
         claim(tokenId);
         Lambo storage lambo = _lambos[tokenId]; 
         if(lambo.onLadder) lambo.stage ++;
         else lambo.onLadder = true;
-        uint price = ladder[lambo.stage].price;
+        uint price = _ladder[lambo.stage].price;
         ahille.transferFrom(msg.sender, address(this), price);
         _makePayment(price);
     }
@@ -60,7 +62,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     function getClaimable(uint tokenId) public view returns(uint) {
         Lambo storage lambo = _lambos[tokenId];
         if(!lambo.onLadder) return 0;
-        return (block.timestamp - lambo.lastClaimed) * ladder[lambo.stage].emission;
+        return (block.timestamp - lambo.lastClaimed) * _ladder[lambo.stage].emission;
     }
 
     function getUnlockable(uint tokenId) public view returns(uint) {
