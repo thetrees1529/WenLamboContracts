@@ -38,7 +38,9 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         _setPayees(payees);
         ahille = AHILLE(ahille_);
         lockRatio = lockRatio_;
-        _ladder = ladder_;
+        for(uint i; i < ladder_.length; i++) {
+            _ladder.push(ladder_[i]);
+        }
         unlockStart = unlockStart_;
         unlockEnd = unlockEnd_;
     }
