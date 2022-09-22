@@ -28,7 +28,7 @@ contract Lambos is ERC721, ERC721Enumerable, Pausable, AccessControl {
     string[] private attributeKeys;
     mapping(uint => Rent) private _rents;
 
-    constructor() ERC721("WenLambo", "LAMBO") {
+    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(RENTER_ROLE, msg.sender);

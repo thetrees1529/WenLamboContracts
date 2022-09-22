@@ -24,6 +24,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         bool onLadder;
         uint stage;
         uint lastClaimed;
+        uint totalClaimed;
         uint lockedTotal;
         uint lockedClaimed;
     }
@@ -34,7 +35,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     uint public unlockEnd;
     AHILLE public ahille;
 
-    constructor(IERC721 lambos, address ahille_, ERC20Payments.Payee[] memory payees, Stage[] memory ladder_, Fees.Fee memory lockRatio_, uint unlockStart_, uint unlockEnd_) OwnerOf(lambos) ERC20Payments(IERC20(ahille)) {
+    constructor(IERC721 lambos, address ahille_, ERC20Payments.Payee[] memory payees, Stage[] memory ladder_, Fees.Fee memory lockRatio_, uint unlockStart_, uint unlockEnd_) OwnerOf(lambos) ERC20Payments(IERC20(ahille_)) {
         _setPayees(payees);
         ahille = AHILLE(ahille_);
         lockRatio = lockRatio_;
@@ -77,14 +78,19 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         return _lambos[tokenId];
     }
 
-    function claim(uint tokenId) public nonReentrant onlyOwnerOf(tokenId) {
+    function claim(uint[] calldata tokenIds) public {
+        for(uint i; i < tokenIds.length; i ++) claim(tokenIds[i]);
+    }
+
+    function claim(uint tokenId) public onlyOwnerOf(tokenId) {
         Lambo storage lambo = _lambos[tokenId];
         uint claimable = getClaimable(tokenId);
         uint locked = claimable.feesOf(lockRatio);
         uint toOwner = claimable - locked;
         lambo.lockedTotal += locked;
-        ahille.mint(msg.sender, toOwner);
         lambo.lastClaimed = block.timestamp;
+        lambo.totalClaimed += claimable;
+        ahille.mint(msg.sender, toOwner);
     }
 
     function claimLocked(uint tokenId) public nonReentrant onlyOwnerOf(tokenId) {
