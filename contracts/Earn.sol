@@ -23,7 +23,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     struct Lambo {
         bool onLadder;
         uint stage;
-        uint lastClaimed;
+        uint lastClaimed; //timestamp
         uint totalClaimed;
         uint lockedTotal;
         uint lockedClaimed;
