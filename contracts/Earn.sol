@@ -17,6 +17,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     struct Stage {
         string name;
         uint price;
+        uint priceHville;
         uint emission;
     }
 
@@ -34,10 +35,12 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     uint public unlockStart;
     uint public unlockEnd;
     AHILLE public ahille;
+    IERC20 public hville;
 
-    constructor(IERC721 lambos, address ahille_, ERC20Payments.Payee[] memory payees, Stage[] memory ladder_, Fees.Fee memory lockRatio_, uint unlockStart_, uint unlockEnd_) OwnerOf(lambos) ERC20Payments(IERC20(ahille_)) {
+    constructor(IERC721 lambos, IERC20 hville_, address ahille_, ERC20Payments.Payee[] memory payees, Stage[] memory ladder_, Fees.Fee memory lockRatio_, uint unlockStart_, uint unlockEnd_) OwnerOf(lambos) ERC20Payments(IERC20(ahille_)) {
         _setPayees(payees);
         ahille = AHILLE(ahille_);
+        hville = hville_;
         lockRatio = lockRatio_;
         for(uint i; i < ladder_.length; i++) {
             _ladder.push(ladder_[i]);
@@ -57,8 +60,10 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         Lambo storage lambo = _lambos[tokenId]; 
         if(lambo.onLadder) lambo.stage ++;
         else lambo.onLadder = true;
-        uint price = _ladder[lambo.stage].price;
+        Stage storage stage = _ladder[lambo.stage];
+        uint price = stage.price;
         ahille.transferFrom(msg.sender, address(this), price);
+        hville.transferFrom(msg.sender, address(this), stage.priceHville);
         _makePayment(price);
     }
 
@@ -98,6 +103,10 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         uint claimable = getUnlockable(tokenId);
         ahille.mint(msg.sender, claimable);
         lambo.lockedClaimed += claimable;
+    }
+
+    function withdrawHville() external onlyOwner {
+        hville.transfer(msg.sender, hville.balanceOf(address(this)));
     }
 
     function _isBeforeUnlock() private view returns(bool) {
