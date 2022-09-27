@@ -2,7 +2,6 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@thetrees1529/solutils/contracts/gamefi/OwnerOf.sol";
@@ -10,7 +9,7 @@ import "@thetrees1529/solutils/contracts/payments/Fees.sol";
 import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
 import "./AHILLE.sol";
 
-contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
+contract Earn is Ownable, OwnerOf, ERC20Payments {
 
     using Fees for uint;
 
@@ -38,8 +37,10 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     AHILLE public ahille;
     IERC20 public hville;
     uint public deployedAt;
+    uint private _totalYield;
+    uint public globalMaxYield;
 
-    constructor(IERC721 lambos, IERC20 hville_, address ahille_, ERC20Payments.Payee[] memory payees, Stage[] memory ladder_, uint defaultEmission_, Fees.Fee memory lockRatio_, uint unlockStart_, uint unlockEnd_) OwnerOf(lambos) ERC20Payments(IERC20(ahille_)) {
+    constructor(IERC721 lambos, IERC20 hville_, address ahille_, ERC20Payments.Payee[] memory payees, Stage[] memory ladder_, uint defaultEmission_, Fees.Fee memory lockRatio_, uint unlockStart_, uint unlockEnd_, uint globalMaxYield_) OwnerOf(lambos) ERC20Payments(IERC20(ahille_)) {
         _setPayees(payees);
         ahille = AHILLE(ahille_);
         hville = hville_;
@@ -51,6 +52,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         unlockStart = unlockStart_;
         unlockEnd = unlockEnd_;
         deployedAt = block.timestamp;
+        globalMaxYield = globalMaxYield_;
     }
 
     function setPayees(ERC20Payments.Payee[] memory payees) external onlyOwner {
@@ -59,7 +61,11 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
 
     function ladder() external view returns(Stage[] memory) {return _ladder;}
 
-    function upgrade(uint tokenId) public nonReentrant onlyOwnerOf(tokenId) {
+    function upgrade(uint[] calldata tokenIds) public {
+        for(uint i; i < tokenIds.length; i ++) upgrade(tokenIds[i]);
+    }
+
+    function upgrade(uint tokenId) public onlyOwnerOf(tokenId) {
         claim(tokenId);
 
         Lambo storage lambo = _lambos[tokenId]; 
@@ -81,7 +87,9 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     function getClaimable(uint tokenId) public view returns(uint) {
         Lambo storage lambo = _lambos[tokenId];
         (uint earningSince, uint emission) = lambo.onLadder ? (lambo.lastClaimed, _ladder[lambo.stage].emission) : (deployedAt, defaultEmission);
-        return _calcEarnedSince(earningSince, emission);
+        uint maxClaim = globalMaxYield - _totalYield;
+        uint attemptedClaim = _calcEarnedSince(earningSince, emission);
+        return attemptedClaim <= maxClaim ? attemptedClaim : maxClaim;
     }
 
     function _calcEarnedDuring(uint start, uint end, uint emission) private pure returns(uint) {
@@ -114,6 +122,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         lambo.lockedTotal += locked;
         lambo.lastClaimed = block.timestamp;
         lambo.totalClaimed += claimable;
+        _totalYield += claimable;
         ahille.mint(msg.sender, toOwner);
     }
 
