@@ -22,6 +22,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     }
 
     struct Lambo {
+        bool onLadder;
         uint stage;
         uint lastClaimed; //timestamp
         uint totalClaimed;
@@ -30,6 +31,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     }
 
     Stage[] private _ladder;
+    uint public defaultEmission;
     Fees.Fee public lockRatio;
     uint public unlockStart;
     uint public unlockEnd;
@@ -37,7 +39,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     IERC20 public hville;
     uint public deployedAt;
 
-    constructor(IERC721 lambos, IERC20 hville_, address ahille_, ERC20Payments.Payee[] memory payees, Stage[] memory ladder_, Fees.Fee memory lockRatio_, uint unlockStart_, uint unlockEnd_) OwnerOf(lambos) ERC20Payments(IERC20(ahille_)) {
+    constructor(IERC721 lambos, IERC20 hville_, address ahille_, ERC20Payments.Payee[] memory payees, Stage[] memory ladder_, uint defaultEmission_, Fees.Fee memory lockRatio_, uint unlockStart_, uint unlockEnd_) OwnerOf(lambos) ERC20Payments(IERC20(ahille_)) {
         _setPayees(payees);
         ahille = AHILLE(ahille_);
         hville = hville_;
@@ -45,6 +47,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
         for(uint i; i < ladder_.length; i++) {
             _ladder.push(ladder_[i]);
         }
+        defaultEmission = defaultEmission_;
         unlockStart = unlockStart_;
         unlockEnd = unlockEnd_;
         deployedAt = block.timestamp;
@@ -57,21 +60,28 @@ contract Earn is Ownable, OwnerOf, ERC20Payments, ReentrancyGuard {
     function ladder() external view returns(Stage[] memory) {return _ladder;}
 
     function upgrade(uint tokenId) public nonReentrant onlyOwnerOf(tokenId) {
-        Lambo storage lambo = _lambos[tokenId]; 
-        Stage storage stage = _ladder[lambo.stage];
         claim(tokenId);
-        lambo.stage ++;
-        uint price = stage.price;
-        ahille.transferFrom(msg.sender, address(this), price);
+
+        Lambo storage lambo = _lambos[tokenId]; 
+        
+        uint stageIndex;
+
+        if(lambo.onLadder) {
+            lambo.stage ++;
+            stageIndex = lambo.stage;
+        } else lambo.onLadder = true;
+
+        Stage storage stage = _ladder[stageIndex];
+        
+        ahille.transferFrom(msg.sender, address(this), stage.price);
         hville.transferFrom(msg.sender, address(this), stage.priceHville);
-        _makePayment(price);
+        _makePayment(stage.price);
     }
 
     function getClaimable(uint tokenId) public view returns(uint) {
         Lambo storage lambo = _lambos[tokenId];
-        Stage storage stage = _ladder[lambo.stage];
-        uint earningSince = lambo.stage == 0 ? deployedAt : lambo.lastClaimed;
-        return _calcEarnedSince(earningSince, stage.emission);
+        (uint earningSince, uint emission) = lambo.onLadder ? (lambo.lastClaimed, _ladder[lambo.stage].emission) : (deployedAt, defaultEmission);
+        return _calcEarnedSince(earningSince, emission);
     }
 
     function _calcEarnedDuring(uint start, uint end, uint emission) private pure returns(uint) {
