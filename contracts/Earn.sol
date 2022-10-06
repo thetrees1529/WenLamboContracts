@@ -108,7 +108,6 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
     }
 
     function upgrade(uint tokenId) public onlyOwnerOf(tokenId) {
-        claimLocked(tokenId);
         claim(tokenId);
 
         Lambo storage lambo = _lambos[tokenId]; 
