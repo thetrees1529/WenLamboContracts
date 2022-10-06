@@ -103,7 +103,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
         return _getMaxClaim(attemptedClaim);
     }
 
-    function upgrade(uint[] calldata tokenIds) public {
+    function upgradeMultiple(uint[] calldata tokenIds) public {
         for(uint i; i < tokenIds.length; i ++) upgrade(tokenIds[i]);
     }
 
@@ -127,7 +127,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
         _makePayment(stage.price);
     }
 
-    function claim(uint[] calldata tokenIds) public {
+    function claimMultiple(uint[] calldata tokenIds) public {
         for(uint i; i < tokenIds.length; i ++) claim(tokenIds[i]);
     }
 
@@ -145,6 +145,10 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
         ahille.mint(msg.sender, toOwner);
     }
 
+    function claimInterestMultiple(uint[] calldata tokenIds) public {
+        for(uint i; i < tokenIds.length; i ++) claimInterest(tokenIds[i]);
+    }
+
     function claimInterest(uint tokenId) public onlyOwnerOf(tokenId) {
         Lambo storage lambo = _lambos[tokenId];
         uint claimable = getInterestOf(tokenId);
@@ -153,6 +157,10 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
         if(!lambo.claimedInterestBefore) lambo.claimedInterestBefore = true;
         _totalYield += claimable;
         ahille.mint(msg.sender, claimable);
+    }
+
+    function claimLockedMultiple(uint[] calldata tokenIds) public {
+        for(uint i; i < tokenIds.length; i ++) claimLocked(tokenIds[i]);
     }
 
     function claimLocked(uint tokenId) public onlyOwnerOf(tokenId) {
