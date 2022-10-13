@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 // import "hardhat/console.sol";
 
-contract Lambos is ERC721, ERC721Enumerable, Pausable, AccessControl {
+contract Nfvs is ERC721, ERC721Enumerable, Pausable, AccessControl {
 
     struct Rent {
         bool inProgress;
