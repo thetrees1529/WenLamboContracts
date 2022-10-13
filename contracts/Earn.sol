@@ -76,30 +76,30 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
     }
 
     function getLocked(uint tokenId) public view returns(uint) {
-        Nfv storage lambo = _nfvs[tokenId]; 
-        return lambo.lockedTotal - lambo.lockedClaimed;
+        Nfv storage nfv = _nfvs[tokenId]; 
+        return nfv.lockedTotal - nfv.lockedClaimed;
     }
 
     function getUnlockable(uint tokenId) public view returns(uint) {
         if(_isBeforeUnlock()) return 0;
-        Nfv storage lambo = _nfvs[tokenId]; 
-        return ((lambo.lockedTotal * (block.timestamp - unlockStart)) / (unlockEnd - unlockStart)) - lambo.lockedClaimed;
+        Nfv storage nfv = _nfvs[tokenId]; 
+        return ((nfv.lockedTotal * (block.timestamp - unlockStart)) / (unlockEnd - unlockStart)) - nfv.lockedClaimed;
     }
 
     function getClaimable(uint tokenId) public view returns(uint) {
-        Nfv storage lambo = _nfvs[tokenId];
-        uint earningSince = _earningSinceOf(lambo);
-        uint emission = lambo.onLadder ? _ladder[lambo.stage].emission : defaultEmission;
+        Nfv storage nfv = _nfvs[tokenId];
+        uint earningSince = _earningSinceOf(nfv);
+        uint emission = nfv.onLadder ? _ladder[nfv.stage].emission : defaultEmission;
         uint attemptedClaim = _calcEarnedSince(earningSince, emission);
         return _getMaxClaim(attemptedClaim);
     }
 
     function getInterestOf(uint tokenId) public view returns(uint) {
-        Nfv storage lambo = _nfvs[tokenId];
-        if(!lambo.claimedBefore) return 0;
+        Nfv storage nfv = _nfvs[tokenId];
+        if(!nfv.claimedBefore) return 0;
         uint locked = getLocked(tokenId);
         uint emission = locked.feesOf(interest);
-        uint attemptedClaim = _calcEarnedSince(lambo.claimedInterestBefore ? lambo.lastClaimedInterest : lambo.firstClaimedAt, emission);
+        uint attemptedClaim = _calcEarnedSince(nfv.claimedInterestBefore ? nfv.lastClaimedInterest : nfv.firstClaimedAt, emission);
         return _getMaxClaim(attemptedClaim);
     }
 
@@ -110,14 +110,14 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
     function upgrade(uint tokenId) public onlyOwnerOf(tokenId) {
         claim(tokenId);
 
-        Nfv storage lambo = _nfvs[tokenId]; 
+        Nfv storage nfv = _nfvs[tokenId]; 
         
         uint stageIndex;
 
-        if(lambo.onLadder) {
-            lambo.stage ++;
-            stageIndex = lambo.stage;
-        } else lambo.onLadder = true;
+        if(nfv.onLadder) {
+            nfv.stage ++;
+            stageIndex = nfv.stage;
+        } else nfv.onLadder = true;
 
         Stage storage stage = _ladder[stageIndex];
         
@@ -132,14 +132,14 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
 
     function claim(uint tokenId) public onlyOwnerOf(tokenId) {
         claimInterest(tokenId);
-        Nfv storage lambo = _nfvs[tokenId];
+        Nfv storage nfv = _nfvs[tokenId];
         uint claimable = getClaimable(tokenId);
         uint locked = claimable.feesOf(lockRatio);
         uint toOwner = claimable - locked;
-        lambo.lockedTotal += locked;
-        lambo.lastClaimed = block.timestamp;
-        lambo.totalClaimed += claimable;
-        if(!lambo.claimedBefore) {lambo.claimedBefore = true; lambo.firstClaimedAt = block.timestamp;}
+        nfv.lockedTotal += locked;
+        nfv.lastClaimed = block.timestamp;
+        nfv.totalClaimed += claimable;
+        if(!nfv.claimedBefore) {nfv.claimedBefore = true; nfv.firstClaimedAt = block.timestamp;}
         _totalYield += claimable;
         ahille.mint(msg.sender, toOwner);
     }
@@ -149,11 +149,11 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
     }
 
     function claimInterest(uint tokenId) public onlyOwnerOf(tokenId) {
-        Nfv storage lambo = _nfvs[tokenId];
+        Nfv storage nfv = _nfvs[tokenId];
         uint claimable = getInterestOf(tokenId);
-        lambo.lastClaimedInterest = block.timestamp;
-        lambo.totalInterestClaimed += claimable;
-        if(!lambo.claimedInterestBefore) lambo.claimedInterestBefore = true;
+        nfv.lastClaimedInterest = block.timestamp;
+        nfv.totalInterestClaimed += claimable;
+        if(!nfv.claimedInterestBefore) nfv.claimedInterestBefore = true;
         _totalYield += claimable;
         ahille.mint(msg.sender, claimable);
     }
@@ -164,9 +164,9 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
 
     function claimLocked(uint tokenId) public onlyOwnerOf(tokenId) {
         claimInterest(tokenId);
-        Nfv storage lambo = _nfvs[tokenId];
+        Nfv storage nfv = _nfvs[tokenId];
         uint claimable = getUnlockable(tokenId);
-        lambo.lockedClaimed += claimable;
+        nfv.lockedClaimed += claimable;
         ahille.mint(msg.sender, claimable);
     }
 
@@ -175,8 +175,8 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
         return attemptedClaim <= maxClaim ? attemptedClaim : maxClaim;
     }
 
-    function _earningSinceOf(Nfv storage lambo) private view returns(uint) {
-        return lambo.claimedBefore ? lambo.lastClaimed : deployedAt;
+    function _earningSinceOf(Nfv storage nfv) private view returns(uint) {
+        return nfv.claimedBefore ? nfv.lastClaimed : deployedAt;
     }
 
     function _calcEarnedDuring(uint start, uint end, uint emission) private pure returns(uint) {

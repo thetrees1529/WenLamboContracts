@@ -11,7 +11,7 @@ contract WhitelistMint is Mint {
 
     WhitelistTickets private _whitelistTickets;
 
-    constructor(Lambos lambos, WhitelistTickets whitelistTickets, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) Mint(lambos, mintPrice_, maxMinted_, payees) {
+    constructor(Nfvs nfvs, WhitelistTickets whitelistTickets, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) Mint(nfvs, mintPrice_, maxMinted_, payees) {
         _whitelistTickets = whitelistTickets;
     }
 
