@@ -3,20 +3,20 @@ pragma solidity 0.8.17;
 
 import "@thetrees1529/solutils/contracts/payments/Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./Lambos.sol";
+import "./Nfvs.sol";
 
 contract Mint is Ownable, Payments {
     uint public mintPrice;
     //has been manually ended
     bool public ended;
-    //number of lambos minted through this contract
+    //number of nfvs minted through this contract
     uint public totalMinted;
-    //maximum number of lambos minted through this contract
+    //maximum number of nfvs minted through this contract
     uint public maxMinted;
-    Lambos private _lambos;
-    constructor(Lambos lambos, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) {
+    Nfvs private _nfvs;
+    constructor(Nfvs nfvs, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) {
         _setPayees(payees);
-        _lambos = lambos;
+        _nfvs = nfvs;
         mintPrice = mintPrice_;
         maxMinted = maxMinted_;
     }
@@ -27,7 +27,7 @@ contract Mint is Ownable, Payments {
         require(totalMinted + numberOf <= maxMinted, "Too many.");
         _beforeMint(msg.sender, numberOf);
         totalMinted += numberOf;
-        _lambos.mint(msg.sender, numberOf);
+        _nfvs.mint(msg.sender, numberOf);
         _makePayment(payment);
     }
     function _beforeMint(address to, uint numberOf) internal virtual {}
