@@ -2,14 +2,17 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 // import "hardhat/console.sol";
 
-contract Nfvs is ERC721, ERC721Enumerable, Pausable, AccessControl {
+contract Nfvs is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Pausable, AccessControl {
 
     struct Rent {
         bool inProgress;
@@ -21,6 +24,7 @@ contract Nfvs is ERC721, ERC721Enumerable, Pausable, AccessControl {
 
     bytes32 public constant RENTER_ROLE = keccak256("RENTER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant EQUIPPER_ROLE = keccak256("EQUIPPER_ROLE");
     Counters.Counter private tokenIdCounter;
     string private baseUri;
 
@@ -33,6 +37,10 @@ contract Nfvs is ERC721, ERC721Enumerable, Pausable, AccessControl {
         _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(RENTER_ROLE, msg.sender);
         _setBaseURI("https://todo.wen.lambo/");
+    }
+
+    function setRoyalty(address receiver, uint96 feeNumerator) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setDefaultRoyalty(receiver, feeNumerator);
     }
 
     function mintOne(address to) public onlyRole(MINTER_ROLE) {
@@ -85,7 +93,7 @@ contract Nfvs is ERC721, ERC721Enumerable, Pausable, AccessControl {
         return (rent.owner, rent.endsAt);
     }
 
-    function returnRented(uint tokenId) external {
+    function returnRented(uint tokenId) external onlyRole(RENTER_ROLE) {
         Rent storage rent = _rents[tokenId];
         require(rent.inProgress, "Rent not in progress.");
         require(block.timestamp >= rent.endsAt, "Rent period not over.");
@@ -167,10 +175,14 @@ contract Nfvs is ERC721, ERC721Enumerable, Pausable, AccessControl {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721Enumerable, AccessControl)
+        override(ERC721, ERC721Enumerable, AccessControl, ERC721Royalty, ERC1155Receiver)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    function _burn(uint tokenId) internal override(ERC721, ERC721Royalty) {
+        return super._burn(tokenId);
     }
 
 }
