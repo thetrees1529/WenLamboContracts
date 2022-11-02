@@ -141,7 +141,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
         nfv.totalClaimed += claimable;
         if(!nfv.claimedBefore) {nfv.claimedBefore = true; nfv.firstClaimedAt = block.timestamp;}
         _totalYield += claimable;
-        ahille.mint(msg.sender, toOwner);
+        ahille.mintTo(msg.sender, toOwner);
     }
 
     function claimInterestMultiple(uint[] calldata tokenIds) public {
@@ -155,7 +155,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
         nfv.totalInterestClaimed += claimable;
         if(!nfv.claimedInterestBefore) nfv.claimedInterestBefore = true;
         _totalYield += claimable;
-        ahille.mint(msg.sender, claimable);
+        ahille.mintTo(msg.sender, claimable);
     }
 
     function claimLockedMultiple(uint[] calldata tokenIds) public {
@@ -167,7 +167,7 @@ contract Earn is Ownable, OwnerOf, ERC20Payments {
         Nfv storage nfv = _nfvs[tokenId];
         uint claimable = getUnlockable(tokenId);
         nfv.lockedClaimed += claimable;
-        ahille.mint(msg.sender, claimable);
+        ahille.mintTo(msg.sender, claimable);
     }
 
     function _getMaxClaim(uint attemptedClaim) private view returns(uint) {

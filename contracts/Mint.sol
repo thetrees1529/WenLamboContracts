@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Nfvs.sol";
 
 contract Mint is Ownable, Payments {
+    event Purchased(address user, uint numberOf);
     uint public mintPrice;
     //has been manually ended
     bool public ended;
@@ -29,6 +30,7 @@ contract Mint is Ownable, Payments {
         totalMinted += numberOf;
         _nfvs.mint(msg.sender, numberOf);
         _makePayment(payment);
+        emit Purchased(msg.sender, numberOf);
     }
     function _beforeMint(address to, uint numberOf) internal virtual {}
     function end() external onlyOwner {
