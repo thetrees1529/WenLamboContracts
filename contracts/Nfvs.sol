@@ -24,7 +24,6 @@ contract Nfvs is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Pausabl
 
     bytes32 public constant RENTER_ROLE = keccak256("RENTER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant EQUIPPER_ROLE = keccak256("EQUIPPER_ROLE");
     Counters.Counter private tokenIdCounter;
     string private baseUri;
 
@@ -43,12 +42,12 @@ contract Nfvs is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Pausabl
         _setDefaultRoyalty(receiver, feeNumerator);
     }
 
-    function mintOne(address to) public onlyRole(MINTER_ROLE) {
-        _mintOne(to);
+    function mintTo(address to, uint numberOf) external onlyRole(MINTER_ROLE) {
+        for(uint i; i < numberOf; i ++) _mintOne(to);
     }
 
-    function mint(address to, uint numberOf) external {
-        for(uint i; i < numberOf; i ++) mintOne(to);
+    function mint(address to, uint tokenId) external onlyRole(MINTER_ROLE) {
+        _mint(to, tokenId);
     }
 
     function tokensOfOwner(address _owner) external view returns (uint256[] memory) {
@@ -143,9 +142,13 @@ contract Nfvs is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Pausabl
     //misc
 
     function _mintOne(address to) private {
-        uint256 _tokenId = tokenIdCounter.current();
+        uint tokenId = tokenIdCounter.current();
+        while(_exists(tokenId)) {
+            tokenIdCounter.increment();
+            tokenId = tokenIdCounter.current();
+        }
         tokenIdCounter.increment();
-        _safeMint(to, _tokenId);
+        _safeMint(to, tokenId);
     }
 
     // hooks / overrides
