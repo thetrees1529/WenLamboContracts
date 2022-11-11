@@ -10,7 +10,6 @@ contract Nfvs is NfvBase {
     using Counters for Counters.Counter;
 
     bytes32 public MINTER_ROLE = keccak256("MINTER_ROLE");
-
     Counters.Counter private tokenIdCounter;
 
     constructor(string memory name, string memory symbol) NfvBase(name, symbol) {}
@@ -20,9 +19,13 @@ contract Nfvs is NfvBase {
     }
 
     function _mintOne(address to) private {
-        uint256 _tokenId = tokenIdCounter.current();
+        uint tokenId = tokenIdCounter.current();
+        while(_exists(tokenId)) {
+            tokenIdCounter.increment();
+            tokenId = tokenIdCounter.current();
+        }
         tokenIdCounter.increment();
-        _safeMint(to, _tokenId);
+        _safeMint(to, tokenId);
     }
 
 }

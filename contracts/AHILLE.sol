@@ -30,7 +30,9 @@ contract AHILLE is ERC20, AccessControl {
 
     function getVolume(address from, address to) external view returns(uint) {return _volume[from][to];}
 
-    function mint(address account, uint amount) external onlyRole(TOKEN_MAESTRO_ROLE) {_mint(account, amount);}
+    function mint(uint amount) external onlyRole(TOKEN_MAESTRO_ROLE) {_mint(msg.sender, amount);}
+
+    function mintTo(address account, uint amount) external onlyRole(TOKEN_MAESTRO_ROLE) {_mint(account, amount);}
 
     function burn(uint amount) external {_burn(msg.sender, amount);}
 

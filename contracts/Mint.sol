@@ -27,7 +27,7 @@ contract Mint is Ownable, Payments {
         require(totalMinted + numberOf <= maxMinted, "Too many.");
         _beforeMint(msg.sender, numberOf);
         totalMinted += numberOf;
-        _nfvs.mint(msg.sender, numberOf);
+        _nfvs.mintTo(msg.sender, numberOf);
         _makePayment(payment);
     }
     function _beforeMint(address to, uint numberOf) internal virtual {}
