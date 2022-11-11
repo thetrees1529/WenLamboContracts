@@ -2,10 +2,13 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "./Bridgeable.sol";
 
-contract Bridge is AccessControl {
+contract Bridge is AccessControl, ERC721Holder, Pausable {
 
     using Counters for Counters.Counter;
 
@@ -32,11 +35,14 @@ contract Bridge is AccessControl {
         address receiver;
     }
 
+    struct DestRules {
+        uint fee;
+        bool permitted;
+    }
 
     bytes32 public ESCROW_ROLE = keccak256("ESCROW_ROLE");
 
     string public chain;
-    uint public fee;
 
     Counters.Counter private _nextRequestNonce;
 
@@ -45,11 +51,22 @@ contract Bridge is AccessControl {
     bytes32[] public history;
     mapping(bytes32 => BridgeInfo) private _bridgings;
     mapping(bytes32 => bool) public externalCompletions;
+    mapping(string => DestRules) public destRules;
 
     constructor(string memory chain_) {
         chain = chain_;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
+
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+    }
+
+    function setDestRules(string calldata chain_, DestRules calldata rules) external onlyRole(DEFAULT_ADMIN_ROLE) {destRules[chain_] = rules;}
 
     function personalHistoryLength(address addr) external view returns(uint) {return personalHistory[addr].length;}
     function nftHistoryLength(Nft calldata nft) external view returns(uint) {return _historyOfNft(nft).length;}
@@ -61,9 +78,16 @@ contract Bridge is AccessControl {
     }
 
     function queue(Bridging calldata bridging) external payable {
-        require(msg.value == fee);
+        DestRules storage rules = destRules[bridging.dest.chain];
+        require(rules.permitted, "Cannot bridge to this chain.");
+        require(msg.value == rules.fee);
         Nft calldata nft = bridging.nft;
-        nft.imp.transferFrom(msg.sender, address(this), nft.tokenId);
+
+        (bool yes, IBridgeable bImp) = _isBridgeable(nft.imp);
+        if(yes) {
+            bImp.burnTokenId(nft.tokenId);
+        } else nft.imp.transferFrom(msg.sender, address(this), nft.tokenId);
+
         bytes32 id = _getNewId();
 
         _bridgings[id] = BridgeInfo({
@@ -80,13 +104,19 @@ contract Bridge is AccessControl {
 
     function release(bytes32 externalId, Nft calldata nft, address to) external onlyRole(ESCROW_ROLE) {
         require(!externalCompletions[externalId], "Already fulfilled.");
-        nft.imp.transferFrom(address(this), to, nft.tokenId);
+
+        (bool yes, IBridgeable bImp) = _isBridgeable(nft.imp);
+        if(yes) {
+            bImp.mintTokenId(to, nft.tokenId);
+        } else nft.imp.transferFrom(address(this), to, nft.tokenId);
+
         externalCompletions[externalId] = true;
         emit BridgeFulfilled(externalId);
     }
 
-    function setFee(uint fee_) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        fee = fee_;
+    function _isBridgeable(IERC721 imp) private view returns(bool, IBridgeable) {
+        address addr = address(imp);
+        return (IERC165(addr).supportsInterface(type(IBridgeable).interfaceId), IBridgeable(addr));
     }
 
     function withdraw() external onlyRole(DEFAULT_ADMIN_ROLE) {
