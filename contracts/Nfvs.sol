@@ -14,7 +14,7 @@ contract Nfvs is NfvBase {
 
     constructor(string memory name, string memory symbol) NfvBase(name, symbol) {}
 
-    function mint(address to, uint numberOf) external onlyRole(MINTER_ROLE) {
+    function mintTo(address to, uint numberOf) external onlyRole(MINTER_ROLE) {
         for(uint i; i < numberOf; i++) _mintOne(to);
     }
 
