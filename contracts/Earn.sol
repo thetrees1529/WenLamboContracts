@@ -121,7 +121,7 @@ contract Earn is AccessControl {
         Nfv storage nfv = nfvInfo[tokenId];
         uint toUnlock = getUnlockable(tokenId);
         nfv.unlocked += toUnlock;
-        token.transfer(msg.sender, toUnlock);
+        token.mintTo(msg.sender, toUnlock);
     }
 
     function getUnlockable(uint tokenId) public view returns(uint){
