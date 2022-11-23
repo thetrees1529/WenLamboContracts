@@ -46,6 +46,26 @@ contract Earn is AccessControl {
         Location location;
     }
 
+    struct NfvView {
+        uint claimable;
+        uint interestable;
+        uint locked;
+        uint unlockable;
+        bool onStages;
+        Location location;
+    }
+
+    function getInformation(uint tokenId) external view returns(NfvView memory nfv) {
+        return NfvView({
+            claimable: getClaimable(tokenId),
+            locked: getLocked(tokenId),
+            unlockable: getUnlockable(tokenId),
+            interestable: getInterest(tokenId),
+            onStages: nfvInfo[tokenId].onStages,
+            location: nfvInfo[tokenId].location
+        });
+    }
+
     bytes32 public EARN_ROLE = keccak256("EARN_ROLE"); 
 
     uint public genesis;
@@ -103,12 +123,12 @@ contract Earn is AccessControl {
         return _stages;
     }
 
-    function getClaimable(uint tokenId) external view returns(uint) {
+    function getClaimable(uint tokenId) public view returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
         return nfv.pendingClaim + _getPending(tokenId);
     }
 
-    function getInterest(uint tokenId) external view returns(uint) {
+    function getInterest(uint tokenId) public view returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
         return nfv.pendingInterest + _getPendingInterest(tokenId);
     }
