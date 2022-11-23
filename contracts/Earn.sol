@@ -42,6 +42,7 @@ contract Earn is AccessControl {
         uint pendingClaim;
         uint locked;
         uint unlocked;
+        uint pendingInterest;
         Location location;
     }
 
@@ -64,7 +65,20 @@ contract Earn is AccessControl {
     constructor(IERC721 nfvs_, Token token_, Stage[] memory stages, Fees.Fee memory lockRatio_, Fees.Fee memory interest_, uint unlockStart_, uint unlockEnd_, uint baseEarn_, uint mintCap_) {
         token = token_;
         nfvs = nfvs_;
-        _stages = stages;
+        for(uint i; i < stages.length; i ++) {
+            Stage memory stage = stages[i];
+            Stage storage _stage = _stages.push();
+            _stage.name = stage.name;
+            for(uint j; j < stage.substages.length; j ++) {
+                Substage memory substage = stage.substages[j];
+                Substage storage _substage = _stage.substages.push();
+                _substage.name = substage.name;
+                _substage.emission = substage.emission;
+                for(uint k; k < substage.payments.length; k ++) {
+                    _substage.payments.push(substage.payments[k]);
+                }
+            }
+        }
         lockRatio = lockRatio_;
         interest = interest_;
         genesis = block.timestamp;
@@ -76,7 +90,10 @@ contract Earn is AccessControl {
     }
 
     function setPayees(ERC20Payments.Payee[] calldata payees) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _payees = payees;
+        delete _payees;
+        for(uint i; i < payees.length; i ++) {
+            _payees.push(payees[i]);
+        }
     }
 
     function getPayees() external view returns(ERC20Payments.Payee[] memory) {return _payees;}
@@ -90,7 +107,24 @@ contract Earn is AccessControl {
         return nfv.pendingClaim + _getPending(tokenId);
     }
 
-    function getLocked(uint tokenId) external view returns(uint){
+    function getInterest(uint tokenId) external view returns(uint) {
+        Nfv storage nfv = nfvInfo[tokenId];
+        return nfv.pendingInterest + _getPendingInterest(tokenId);
+    }
+
+    function getLocked(uint tokenId) public view returns(uint) {
+        Nfv storage nfv = nfvInfo[tokenId];
+        return nfv.locked - nfv.unlocked;
+    }
+
+    function unlock(uint tokenId) external onlyOwnerOf(tokenId) {
+        Nfv storage nfv = nfvInfo[tokenId];
+        uint toUnlock = getUnlockable(tokenId);
+        nfv.unlocked += toUnlock;
+        token.transfer(msg.sender, toUnlock);
+    }
+
+    function getUnlockable(uint tokenId) public view returns(uint){
         Nfv storage nfv = nfvInfo[tokenId];
         uint totalTime = unlockEnd - unlockStart;
         uint timeElapsed; 
@@ -100,16 +134,39 @@ contract Earn is AccessControl {
         return theoreticalLocked - nfv.unlocked;
     }
 
-
+    function claimMultiple(uint[] calldata tokenIds) external {
+        for(uint i; i < tokenIds.length; i ++) {
+            claim(tokenIds[i]);
+        }
+    }
 
     function claim(uint tokenId) public onlyOwnerOf(tokenId) {
         _claim(tokenId);
         Nfv storage nfv = nfvInfo[tokenId];
-        uint locked = nfv.pendingClaim.feesOf(lockRatio);
-        uint toOwner = nfv.pendingClaim - locked;
+        uint pendingClaim = nfv.pendingClaim;
         delete nfv.pendingClaim;
-        nfv.locked += locked;
-        token.mintTo(msg.sender, toOwner);
+        token.mintTo(msg.sender, pendingClaim);
+    }
+
+    function claimInterestMultiple(uint[] calldata tokenIds) external {
+        for(uint i; i < tokenIds.length; i ++) {
+            claimInterest(tokenIds[i]);
+        }
+    }
+
+    function claimInterest(uint tokenId) public onlyOwnerOf(tokenId) {
+        _claim(tokenId);
+        Nfv storage nfv = nfvInfo[tokenId];
+        uint pendingInterest = nfv.pendingInterest;
+        delete nfv.pendingInterest;
+        token.mintTo(msg.sender, pendingInterest);
+    }
+
+
+    function upgradeMultiple(uint[] calldata tokenIds) external {
+        for(uint i; i < tokenIds.length; i ++) {
+            upgrade(tokenIds[i]);
+        }
     }
 
     function upgrade(uint tokenId) public onlyOwnerOf(tokenId) {
@@ -145,6 +202,13 @@ contract Earn is AccessControl {
         _setLocation(tokenId, location);
     }
 
+    function setLocked(uint tokenId, uint locked) external onlyRole(EARN_ROLE) {
+        Nfv storage nfv = nfvInfo[tokenId];
+        uint current = getLocked(tokenId);
+        uint delta = locked - current;
+        nfv.locked += delta;
+    }
+
     function _setLocation(uint tokenId, Location memory location) private {
         require(_isValidLocation(location), "Setting invalid location.");
         _claim(tokenId);
@@ -163,20 +227,41 @@ contract Earn is AccessControl {
     }
 
     function _claim(uint tokenId) private {
-        uint claimed = _getPending(tokenId);
         Nfv storage nfv = nfvInfo[tokenId];
+
+        uint interested = _getPendingInterest(tokenId);
+        uint claimed = _getPending(tokenId);
+        uint locked = claimed.feesOf(lockRatio);
+        uint pendingClaim = claimed - locked;
+
+        nfv.pendingInterest += interested;
+        nfv.pendingClaim += pendingClaim;
+        nfv.locked += locked;
         nfv.lastClaim = block.timestamp;
-        nfv.pendingClaim += claimed;
         if(!nfv.claimedOnce) nfv.claimedOnce = true;
     }
 
     function _getPending(uint tokenId) private view returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
-        uint earningSince = nfv.claimedOnce ? nfv.lastClaim : genesis;
+        uint earningSince = _claimedOrGenesis(tokenId);
         Location storage location = nfv.location;
         uint emission = nfv.onStages ? _getSubstage(location).emission : baseEarn;
         uint timeEarning = block.timestamp - earningSince;
         return timeEarning * emission;
+    }
+
+    function _getPendingInterest(uint tokenId) private view returns(uint) {
+        Nfv storage nfv = nfvInfo[tokenId];
+        uint timeSince = _claimedOrGenesis(tokenId);
+        uint until = block.timestamp <= unlockEnd ? block.timestamp : unlockEnd;
+        uint timeElapsed = until - timeSince;
+        uint iPS = nfv.locked.feesOf(interest);
+        return iPS * timeElapsed; 
+    }
+
+    function _claimedOrGenesis(uint tokenId) private view returns(uint) {
+        Nfv storage nfv = nfvInfo[tokenId];
+        return nfv.claimedOnce ? nfv.lastClaim : genesis;
     }
 
     function _getSubstage(Location memory location) private view returns(Substage storage) {
