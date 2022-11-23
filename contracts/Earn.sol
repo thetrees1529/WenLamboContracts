@@ -53,6 +53,7 @@ contract Earn is AccessControl {
     uint public unlockEnd;
     uint public baseEarn;
     uint public mintCap;
+    uint public totalMinted;
     Stage[] private _stages;
     Fees.Fee public lockRatio;
     Fees.Fee public interest;
@@ -121,7 +122,7 @@ contract Earn is AccessControl {
         Nfv storage nfv = nfvInfo[tokenId];
         uint toUnlock = getUnlockable(tokenId);
         nfv.unlocked += toUnlock;
-        token.mintTo(msg.sender, toUnlock);
+        _mintTo(msg.sender, toUnlock);
     }
 
     function getUnlockable(uint tokenId) public view returns(uint){
@@ -145,7 +146,7 @@ contract Earn is AccessControl {
         Nfv storage nfv = nfvInfo[tokenId];
         uint pendingClaim = nfv.pendingClaim;
         delete nfv.pendingClaim;
-        token.mintTo(msg.sender, pendingClaim);
+        _mintTo(msg.sender, pendingClaim);
     }
 
     function claimInterestMultiple(uint[] calldata tokenIds) external {
@@ -159,7 +160,7 @@ contract Earn is AccessControl {
         Nfv storage nfv = nfvInfo[tokenId];
         uint pendingInterest = nfv.pendingInterest;
         delete nfv.pendingInterest;
-        token.mintTo(msg.sender, pendingInterest);
+        _mintTo(msg.sender, pendingInterest);
     }
 
 
@@ -288,6 +289,12 @@ contract Earn is AccessControl {
     modifier onlyOwnerOf(uint tokenId) {
         require(OwnerOf.isOwnerOf(nfvs, msg.sender, tokenId), "Does not own NFT.");
         _;
+    }
+
+    function _mintTo(address addr, uint value) private {
+        require(totalMinted + value <= mintCap, "Mint cap reached.");
+        totalMinted += value;
+        token.mintTo(addr, value);
     }
 
 
