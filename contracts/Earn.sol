@@ -202,11 +202,12 @@ contract Earn is AccessControl {
         _setLocation(tokenId, location);
     }
 
-    function setLocked(uint tokenId, uint locked) external onlyRole(EARN_ROLE) {
+    function editLocked(uint tokenId, int change) external onlyRole(EARN_ROLE) {
+        require(block.timestamp < unlockStart, "Unlock already started.");
         Nfv storage nfv = nfvInfo[tokenId];
-        uint current = getLocked(tokenId);
-        uint delta = locked - current;
-        nfv.locked += delta;
+        uint uintChange = uint(change);
+        if(change > int(nfv.locked)) nfv.locked += uintChange;
+        else nfv.locked -= uintChange;
     }
 
     function _setLocation(uint tokenId, Location memory location) private {
