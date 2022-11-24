@@ -53,6 +53,7 @@ contract Earn is AccessControl {
         uint unlockable;
         bool onStages;
         Location location;
+        Nfv nfv;
     }
 
     function getInformation(uint tokenId) external view returns(NfvView memory nfv) {
@@ -62,7 +63,8 @@ contract Earn is AccessControl {
             unlockable: getUnlockable(tokenId),
             interestable: getInterest(tokenId),
             onStages: nfvInfo[tokenId].onStages,
-            location: nfvInfo[tokenId].location
+            location: nfvInfo[tokenId].location,
+            nfv: nfvInfo[tokenId]
         });
     }
 
