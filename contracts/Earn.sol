@@ -43,6 +43,8 @@ contract Earn is AccessControl {
         uint locked;
         uint unlocked;
         uint pendingInterest;
+        uint totalInterestClaimed;
+        uint totalClaimed;
         Location location;
     }
 
@@ -167,6 +169,7 @@ contract Earn is AccessControl {
         _claim(tokenId);
         Nfv storage nfv = nfvInfo[tokenId];
         uint pendingClaim = nfv.pendingClaim;
+        nfv.totalClaimed += pendingClaim;
         delete nfv.pendingClaim;
         _mintTo(msg.sender, pendingClaim);
     }
@@ -181,6 +184,7 @@ contract Earn is AccessControl {
         _claim(tokenId);
         Nfv storage nfv = nfvInfo[tokenId];
         uint pendingInterest = nfv.pendingInterest;
+        nfv.totalInterestClaimed += pendingInterest;
         delete nfv.pendingInterest;
         _mintTo(msg.sender, pendingInterest);
     }
