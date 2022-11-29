@@ -202,6 +202,7 @@ contract Earn is AccessControl {
         if(nfv.onStages) {
             Stage storage currentStage = _stages[location.stage];
             if(location.substage >= currentStage.substages.length - 1) {
+                require(location.stage < _stages.length - 1, "Fully upgraded.");
                 location.stage ++;
                 location.substage = 0;
             } else {

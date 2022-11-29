@@ -56,8 +56,26 @@ contract Attributes is AccessControl {
         delete attributeKeys;
     }
 
-    function addExp(uint256 _tokenId, string memory _attribute, uint256 _toAdd) external onlyRole(UPGRADER_ROLE) {
+    struct ExpMod {
+        uint tokenId;
+        string attribute;
+        uint change;
+    }
+
+    function addExpMultiple(ExpMod[] calldata expMods) external {
+        for(uint i; i < expMods.length; i ++) addExp(expMods[i].tokenId, expMods[i].attribute, expMods[i].change);
+    }
+
+    function removeExpMultiple(ExpMod[] calldata expMods) external {
+        for(uint i; i < expMods.length; i ++) removeExp(expMods[i].tokenId, expMods[i].attribute, expMods[i].change);
+    }
+
+    function addExp(uint256 _tokenId, string memory _attribute, uint256 _toAdd) public onlyRole(UPGRADER_ROLE) {
         statistics[_tokenId][_attribute] += _toAdd;
+    }
+
+    function removeExp(uint tokenId, string calldata attribute, uint toRemove) public onlyRole(UPGRADER_ROLE) {
+        statistics[tokenId][attribute] -= toRemove;
     }
 
     function attributeKeyExists(string memory _attribute) external view returns(bool exists) {
