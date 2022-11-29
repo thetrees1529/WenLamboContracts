@@ -201,7 +201,7 @@ contract Earn is AccessControl {
         Location memory location = nfv.location;
         if(nfv.onStages) {
             Stage storage currentStage = _stages[location.stage];
-            if(location.substage >= currentStage.substages.length - 1) {
+            if(location.substage == currentStage.substages.length - 1) {
                 require(location.stage < _stages.length - 1, "Fully upgraded.");
                 location.stage ++;
                 location.substage = 0;
