@@ -34,7 +34,7 @@ contract Token is ERC20Burnable, AccessControl {
 
     function mintTo(address account, uint amount) external onlyRole(TOKEN_MAESTRO_ROLE) {_mint(account, amount);}
 
-    function burnFrom(address account, uint amount) public override onlyRole(TOKEN_MAESTRO_ROLE) {
+    function burnFrom(address account, uint amount) public override {
         if(!_allowanceSkippable(account)) _approve(account, msg.sender, amount);
         super.burnFrom(account,amount);
     }
