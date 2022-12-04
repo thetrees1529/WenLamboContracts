@@ -77,29 +77,34 @@ contract Bridge is AccessControl, ERC721Holder, Pausable {
         return bridgeInfo.bridging;
     }
 
-    function queue(Bridging calldata bridging) external payable {
-        DestRules storage rules = destRules[bridging.dest.chain];
-        require(rules.permitted, "Cannot bridge to this chain.");
-        require(msg.value == rules.fee);
-        Nft calldata nft = bridging.nft;
+    function queue(Bridging[] calldata bridgings) external payable {
+        int paymentMade = int(msg.value);
+        for(uint i; i < bridgings.length; i ++) {
+            Bridging calldata bridging = bridgings[i];
+            DestRules storage rules = destRules[bridging.dest.chain];
+            require(rules.permitted, "Cannot bridge to this chain.");
+            paymentMade -= int(rules.fee);
+            Nft calldata nft = bridging.nft;
 
-        (bool yes, IBridgeable bImp) = _isBridgeable(nft.imp);
-        if(yes) {
-            bImp.burnTokenId(nft.tokenId);
-        } else nft.imp.transferFrom(msg.sender, address(this), nft.tokenId);
+            (bool yes, IBridgeable bImp) = _isBridgeable(nft.imp);
+            if(yes) {
+                bImp.burnTokenId(nft.tokenId);
+            } else nft.imp.transferFrom(msg.sender, address(this), nft.tokenId);
 
-        bytes32 id = _getNewId();
+            bytes32 id = _getNewId();
 
-        _bridgings[id] = BridgeInfo({
-            exists: true,
-            bridging: bridging
-        });
+            _bridgings[id] = BridgeInfo({
+                exists: true,
+                bridging: bridging
+            });
 
-        personalHistory[msg.sender].push(id);
-        _historyOfNft(nft).push(id);
-        history.push(id);
+            personalHistory[msg.sender].push(id);
+            _historyOfNft(nft).push(id);
+            history.push(id);
 
-        emit RequestMade(id, bridging);
+            emit RequestMade(id, bridging);
+        }
+        require(paymentMade == 0, "Incorrect payment made.");
     }
 
     function release(bytes32 externalId, Nft calldata nft, address to) external onlyRole(ESCROW_ROLE) {

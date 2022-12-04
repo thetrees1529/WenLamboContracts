@@ -15,7 +15,7 @@ nft,
 async function main() {
     const token = await ethers.getContractAt("Token", tokenAddr)
     const Contract = await ethers.getContractFactory("Earn")
-    const unlockStart = Date.now() + lockDelay
+    const unlockStart = Math.round(Date.now() + lockDelay / 1000)
     const contract = await (await Contract.deploy(
         nft,
         tokenAddr,
