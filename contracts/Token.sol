@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 contract Token is ERC20Burnable, AccessControl {
 
+    uint public MAX_SUPPLY;
+
     struct TransferInput {
         address to;
         uint amount;
@@ -18,9 +20,10 @@ contract Token is ERC20Burnable, AccessControl {
         uint amount;
     }
     
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) {
+    constructor(string memory name, string memory symbol, uint MAX_SUPPLY_) ERC20(name, symbol) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(TOKEN_MAESTRO_ROLE, msg.sender);
+        MAX_SUPPLY = MAX_SUPPLY_;
     } 
 
     bytes32 public constant OPT_OUT_SKIP_ALLOWANCE = keccak256("OPT_OUT_SKIP_ALLOWANCE");
@@ -85,6 +88,11 @@ contract Token is ERC20Burnable, AccessControl {
             TransferFromInput calldata transferFrom_ = transferFroms[i];  
             transferFrom(transferFrom_.from, transferFrom_.to, transferFrom_.amount);
         }
+    }
+
+    function _mint(address account, uint amount) internal override {
+        super._mint(account,amount);
+        require(totalSupply() <= MAX_SUPPLY, "Max supply reached.");
     }
 
     function _afterTokenTransfer(address from, address to, uint amount) internal override {
