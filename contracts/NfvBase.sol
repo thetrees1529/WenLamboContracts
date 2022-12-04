@@ -27,7 +27,6 @@ contract NfvBase is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Paus
     Counters.Counter private tokenIdCounter;
     string private baseUri;
 
-    uint256 constant public MAX_LAMBOS = 10000;
     string[] private attributeKeys;
     mapping(uint => Rent) private _rents;
 
@@ -109,12 +108,7 @@ contract NfvBase is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Paus
     }
 
     // hooks / overrides
-
-    function _mint(address to, uint tokenId) internal override {
-        super._mint(to, tokenId);
-        require(totalSupply() <= MAX_LAMBOS, "Max supply reached.");
-    }
-
+    
     function _baseURI() internal override view returns(string memory) {
         return baseUri;
     }

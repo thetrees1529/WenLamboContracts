@@ -10,6 +10,7 @@ contract Nfvs is NfvBase {
     using Counters for Counters.Counter;
 
     bytes32 public MINTER_ROLE = keccak256("MINTER_ROLE");
+    uint256 constant public MAX_LAMBOS = 10000;
     Counters.Counter private tokenIdCounter;
 
     constructor(string memory name, string memory symbol) NfvBase(name, symbol) {}
@@ -26,6 +27,11 @@ contract Nfvs is NfvBase {
         }
         tokenIdCounter.increment();
         _safeMint(to, tokenId);
+    }
+
+    function _mint(address to, uint tokenId) internal override {
+        super._mint(to, tokenId);
+        require(totalSupply() <= MAX_LAMBOS, "Max supply reached.");
     }
 
 }
