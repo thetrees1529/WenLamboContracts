@@ -78,8 +78,11 @@ contract Earn is AccessControl {
     uint public baseEarn;
     uint public mintCap;
     uint public totalMinted;
+    uint public totalReflected;
+    uint public totalBurn;
     Stage[] private _stages;
     Fees.Fee public lockRatio;
+    Fees.Fee public burnRatio;
     Fees.Fee public interest;
     Token public token;
     IERC721 public nfvs;
@@ -87,7 +90,7 @@ contract Earn is AccessControl {
 
     mapping(uint => Nfv) public nfvInfo;
 
-    constructor(IERC721 nfvs_, Token token_, Stage[] memory stages, Fees.Fee memory lockRatio_, Fees.Fee memory interest_, uint unlockStart_, uint unlockEnd_, uint baseEarn_, uint mintCap_) {
+    constructor(IERC721 nfvs_, Token token_, Stage[] memory stages, Fees.Fee memory lockRatio_, Fees.Fee memory burnRatio_, Fees.Fee memory interest_, uint unlockStart_, uint unlockEnd_, uint baseEarn_, uint mintCap_) {
         token = token_;
         nfvs = nfvs_;
         for(uint i; i < stages.length; i ++) {
@@ -105,6 +108,7 @@ contract Earn is AccessControl {
             }
         }
         lockRatio = lockRatio_;
+        burnRatio = burnRatio_;
         interest = interest_;
         genesis = block.timestamp;
         unlockStart = unlockStart_;
@@ -119,6 +123,14 @@ contract Earn is AccessControl {
         for(uint i; i < payees.length; i ++) {
             _payees.push(payees[i]);
         }
+    }
+
+    function setLockRatio(Fees.Fee calldata lockRatio_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        lockRatio = lockRatio_;
+    }
+
+    function setBurnRatio(Fees.Fee calldata burnRatio_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        burnRatio = burnRatio_;
     }
 
     function getPayees() external view returns(ERC20Payments.Payee[] memory) {return _payees;}
@@ -304,8 +316,18 @@ contract Earn is AccessControl {
 
 
     function _takePayment(address from, Payment storage payment) private {
-        payment.token.transferFrom(from, address(this), payment.value);
-        payment.token.split(payment.value, _payees);
+        uint total = payment.value;
+        payment.token.transferFrom(from, address(this), total);
+
+        uint attemptedBurn = total.feesOf(burnRatio);
+        try Token(address(payment.token)).burn(attemptedBurn) {
+            total -= attemptedBurn;
+            totalBurn += attemptedBurn;
+        }
+        catch {}
+
+        payment.token.split(total, _payees);
+        totalReflected += total;
     }
 
     //never needs to be used unless there is a bug.

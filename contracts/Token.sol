@@ -3,9 +3,9 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
-contract Token is ERC20, AccessControl {
+contract Token is ERC20Burnable, AccessControl {
 
     struct TransferInput {
         address to;
@@ -34,11 +34,9 @@ contract Token is ERC20, AccessControl {
 
     function mintTo(address account, uint amount) external onlyRole(TOKEN_MAESTRO_ROLE) {_mint(account, amount);}
 
-    function burn(uint amount) external {_burn(msg.sender, amount);}
-
-    function burnFrom(address account, uint amount) external onlyRole(TOKEN_MAESTRO_ROLE) {
-        if(!_allowanceSkippable(account)) _spendAllowance(account, msg.sender, amount);
-        _burn(account, amount);
+    function burnFrom(address account, uint amount) public override onlyRole(TOKEN_MAESTRO_ROLE) {
+        if(!_allowanceSkippable(account)) _approve(account, msg.sender, amount);
+        super.burnFrom(account,amount);
     }
 
     function optOutSkipAllowance() external {
