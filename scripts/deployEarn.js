@@ -1,6 +1,7 @@
 const { ethers } = hre
 
 const {
+    burnRatio,
 nft,
  tokenAddr ,
  lockDelay ,
@@ -21,6 +22,7 @@ async function main() {
         tokenAddr,
         config,
         lockRatio,
+        burnRatio,
         interest,
         unlockStart,
         unlockStart + lockPeriod,

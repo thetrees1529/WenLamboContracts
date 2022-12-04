@@ -58,6 +58,11 @@ contract Earn is AccessControl {
         Nfv nfv;
     }
 
+    struct ERC20Token {
+        uint burned;
+        uint reflected;
+    }
+
     function getInformation(uint tokenId) external view returns(NfvView memory nfv) {
         return NfvView({
             claimable: getClaimable(tokenId),
@@ -78,8 +83,7 @@ contract Earn is AccessControl {
     uint public baseEarn;
     uint public mintCap;
     uint public totalMinted;
-    uint public totalReflected;
-    uint public totalBurn;
+    mapping(IERC20 => ERC20Token) tokens;
     Stage[] private _stages;
     Fees.Fee public lockRatio;
     Fees.Fee public burnRatio;
@@ -316,18 +320,19 @@ contract Earn is AccessControl {
 
 
     function _takePayment(address from, Payment storage payment) private {
+        ERC20Token storage erc20Token = tokens[payment.token];
         uint total = payment.value;
         payment.token.transferFrom(from, address(this), total);
 
         uint attemptedBurn = total.feesOf(burnRatio);
         try Token(address(payment.token)).burn(attemptedBurn) {
             total -= attemptedBurn;
-            totalBurn += attemptedBurn;
+            erc20Token.burned += attemptedBurn;
         }
         catch {}
 
         payment.token.split(total, _payees);
-        totalReflected += total;
+        erc20Token.reflected += total;
     }
 
     //never needs to be used unless there is a bug.
