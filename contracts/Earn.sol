@@ -83,7 +83,7 @@ contract Earn is AccessControl {
     uint public baseEarn;
     uint public mintCap;
     uint public totalMinted;
-    mapping(IERC20 => ERC20Token) tokens;
+    mapping(IERC20 => ERC20Token) public tokens;
     Stage[] private _stages;
     Fees.Fee public lockRatio;
     Fees.Fee public burnRatio;

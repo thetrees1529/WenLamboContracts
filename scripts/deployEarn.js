@@ -11,7 +11,7 @@ nft,
  baseEarn , 
  mintCap ,
  stages: config
-} = require("./earnConfigs.js")["fujiMuscle"]
+} = require("./earnConfigs.js")["fujiLambo"]
 
 async function main() {
     const token = await ethers.getContractAt("Token", tokenAddr)
