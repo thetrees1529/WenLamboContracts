@@ -11,12 +11,12 @@ nft,
  baseEarn , 
  mintCap ,
  stages: config
-} = require("./earnConfigs.js")["fujiLambo"]
+} = require("./earnConfigs.js")["fujiMuscle"]
 
 async function main() {
     const token = await ethers.getContractAt("Token", tokenAddr)
     const Contract = await ethers.getContractFactory("Earn")
-    const unlockStart = Math.round(Date.now() + lockDelay / 1000)
+    const unlockStart = Math.round(Date.now() / 1000 + lockDelay)
     const contract = await (await Contract.deploy(
         nft,
         tokenAddr,

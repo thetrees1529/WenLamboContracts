@@ -10,6 +10,7 @@ contract Reflections is Ownable {
 
     IERC721 public car;
     uint public constant SPLIT_BETWEEN = 10000;
+    mapping(address => uint) public collectedByAddress;
 
     constructor(IERC721 car_) {
         car = car_;
@@ -42,6 +43,7 @@ contract Reflections is Ownable {
         data.collected[input.tokenId] += toPay;
         data.lastBalance -= toPay;
         input.token.transfer(msg.sender, toPay);
+        collectedByAddress[msg.sender] += toPay;
     }
 
     function getTotalCollected(uint tokenId, IERC20 token) external view returns(uint) {
