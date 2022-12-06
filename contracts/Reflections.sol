@@ -56,6 +56,11 @@ contract Reflections is Ownable {
         for(uint i; i < inputs.length; i ++) collect(inputs[i]);
     }
 
+    function getTotalDistributed(IERC20 token) external view returns(uint) {
+        (uint totalReceived,) = _pendingTotalReceivedAndBalance(token);
+        return totalReceived - token.balanceOf(address(this));
+    }
+
     function _update(IERC20 token) private {
         Token storage data = _tokens[token];
         (uint totalReceived, uint balance) = _pendingTotalReceivedAndBalance(token);
