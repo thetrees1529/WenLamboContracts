@@ -11,6 +11,10 @@ module.exports = {
     harmony: {
       url: "https://api.harmony.one",
       accounts: [require("./privateKey.json")]
+    },
+    avax: {
+      url: "https://api.avax.network/ext/bc/C/rpc",
+      accounts: [require("./privateKey.json")]
     }
   } : undefined
 }

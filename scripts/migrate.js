@@ -5,7 +5,7 @@ const ignoreList = [0x1118cD6dFdD8D34f5b4ed41e2A378553f60448bd,
 0xc4D75E14Fe19Da160d09Cf6203c4F625B42663f3]
 const batchSize = 100
 const subBatchCount = 1
-const gville = "0x9A2748FfD2923155b7C726EbdaCC11A1c2d3BF68" 
+const gville = "0x7c22E823b5eE641ed534CE3e368b59b5F0A3b7e0" 
 const {ethers} = hre
 
 async function main() {
