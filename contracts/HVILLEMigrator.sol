@@ -11,13 +11,23 @@ contract Migrator is AccessControl {
 
     Token public token;
 
-    constructor(Token token_) {token = token_;}
+    constructor(Token token_) {token = token_;_grantRole(DEFAULT_ADMIN_ROLE, msg.sender);}
 
-    function migrate(address addr, uint amount) external onlyRole(MIGRATOR_ROLE) {
-        require(!migrated[addr], "Already migrated");
-        migrated[addr] = true;
-        token.mintTo(addr, amount);
+    struct MigrateInput {
+        address addr;
+        uint amount;
     }
+
+    function migrate(MigrateInput memory input) public onlyRole(MIGRATOR_ROLE) {
+        require(!migrated[input.addr], "Already migrated");
+        migrated[input.addr] = true;
+        token.mintTo(input.addr, input.amount);
+    }
+
+    function migrateMultiple(MigrateInput[] calldata inputs) external {
+        for(uint i; i < inputs.length; i ++) migrate(inputs[i]);
+    }
+
 }
 
 
