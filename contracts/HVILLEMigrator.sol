@@ -19,7 +19,7 @@ contract Migrator is AccessControl {
     }
 
     function migrate(MigrateInput memory input) public onlyRole(MIGRATOR_ROLE) {
-        require(!migrated[input.addr], "Already migrated");
+        if(migrated[input.addr]) return;
         migrated[input.addr] = true;
         token.mintTo(input.addr, input.amount);
     }
