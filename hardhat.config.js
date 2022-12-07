@@ -13,7 +13,7 @@ module.exports = {
       accounts: [require("./privateKey.json")]
     },
     avax: {
-      url: "https://api.avax.network/ext/bc/C/rpc",
+      url: "https://rpc.ankr.com/avalanche",
       accounts: [require("./privateKey.json")]
     }
   } : undefined
