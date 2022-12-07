@@ -34,7 +34,7 @@ async function main() {
                 try {
                     await (await migrator.migrateMultiple(tx)).wait()
                     success = true
-                } catch {console.log("retrying failed tx")}
+                } catch(e) {console.log(`retrying failed tx with error: ${e}`)}
             }
         }))
     }
