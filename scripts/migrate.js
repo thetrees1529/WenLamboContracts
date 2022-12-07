@@ -26,7 +26,7 @@ async function main() {
             subBatches.push(batch.slice(j, j + subBatchSize - 1))
         }
         const fixed = subBatches.map( el => el.map(ass => ({addr: ass.address, amount: ass.balance})).filter(fart => {
-            return fart.addr != ethers.constants.AddressZero || ignoreList.includes(fart.addr) || fart.amount == "0"
+            return fart.addr != ethers.constants.AddressZero && !ignoreList.includes(fart.addr) && fart.amount == "0"
         }))
         await Promise.all(fixed.map(async tx => {
             const success = false
