@@ -26,9 +26,17 @@ async function main() {
             subBatches.push(batch.slice(j, j + subBatchSize - 1))
         }
         const fixed = subBatches.map( el => el.map(ass => ({addr: ass.address, amount: ass.balance})).filter(fart => {
-            return fart.addr != ethers.constants.AddressZero || ignoreList.includes(fart.addr)
+            return fart.addr != ethers.constants.AddressZero || ignoreList.includes(fart.addr) || fart.amount == "0"
         }))
-        await Promise.all(fixed.map(async tx => await (await migrator.migrateMultiple(tx)).wait()))
+        await Promise.all(fixed.map(async tx => {
+            const success = false
+            while(!success) {
+                try {
+                    await (await migrator.migrateMultiple(tx)).wait()
+                    success = true
+                } catch {console.log("retrying failed tx")}
+            }
+        }))
     }
 
 }
