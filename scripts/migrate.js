@@ -7,6 +7,7 @@ const batchSize = 100
 const subBatchCount = 1
 const gville = "0x7c22E823b5eE641ed534CE3e368b59b5F0A3b7e0" 
 const {ethers} = hre
+const lastBlock = 23341571
 
 async function main() {
 
