@@ -19,7 +19,7 @@ contract Migrator is AccessControl {
     }
 
     function migrate(MigrateInput memory input) public onlyRole(MIGRATOR_ROLE) {
-        if(migrated[input.addr]) return;
+        if(migrated[input.addr] || token.balanceOf(input.addr) > 0) return;
         migrated[input.addr] = true;
         token.mintTo(input.addr, input.amount);
     }
