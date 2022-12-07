@@ -2,17 +2,18 @@
 import "@thetrees1529/solutils/contracts/gamefi/OwnerOf.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 pragma solidity 0.8.17;
 
 contract Reflections is Ownable {
     using OwnerOf for IERC721;
 
-    IERC721 public car;
+    IERC721Enumerable public car;
     uint public constant SPLIT_BETWEEN = 10000;
     mapping(address => uint) public collectedByAddress;
 
-    constructor(IERC721 car_) {
+    constructor(IERC721Enumerable car_) {
         car = car_;
     }
 
@@ -30,6 +31,16 @@ contract Reflections is Ownable {
 
     mapping(IERC20 => Token) private _tokens;
 
+    function owedToWallet(address wallet, IERC20 token) external view returns(uint owedTo) {
+        uint[] memory tokens = _getOwnedTokens(wallet);
+        for(uint i; i < tokens.length; i ++) owedTo += owed(tokens[i], token);
+    }
+
+    function collectFromAllOwned(address wallet, IERC20 token) external {
+        uint[] memory tokens = _getOwnedTokens(wallet);
+        for(uint i; i < tokens.length; i ++) collect(CollectInput(tokens[i], token));
+    }
+
     function owed(uint tokenId, IERC20 token) public view returns(uint) {
         mapping(uint => uint) storage collected = _tokens[token].collected;
         (uint totalReceived,) = _pendingTotalReceivedAndBalance(token);
@@ -37,7 +48,7 @@ contract Reflections is Ownable {
         return lifetimeOwed - collected[tokenId];
     }
 
-    function collect(CollectInput calldata input) public onlyOwnerOf(input.tokenId) update(input.token) {
+    function collect(CollectInput memory input) public onlyOwnerOf(input.tokenId) update(input.token) {
         uint toPay = owed(input.tokenId, input.token);
         Token storage data = _tokens[input.token];
         data.collected[input.tokenId] += toPay;
@@ -77,12 +88,19 @@ contract Reflections is Ownable {
         totalReceived = data.totalReceived + toAdd;
     }
 
+    function _getOwnedTokens(address addr) private view returns(uint[] memory tokens) {
+        tokens = new uint[](car.balanceOf(addr));
+        for(uint i; i < tokens.length; i ++) {
+            tokens[i] = car.tokenOfOwnerByIndex(addr, i);
+        }
+    }
+
     function emergencyWithdraw(IERC20 token) external onlyOwner {
         token.transfer(msg.sender, token.balanceOf(address(this)));
     }
 
     modifier onlyOwnerOf(uint tokenId) {
-        require(car.isOwnerOf(msg.sender, tokenId), "Incorrect owner.");
+        require(IERC721(car).isOwnerOf(msg.sender, tokenId), "Incorrect owner.");
         _;
     }
 
