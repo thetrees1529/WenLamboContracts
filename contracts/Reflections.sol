@@ -36,8 +36,8 @@ contract Reflections is Ownable {
         for(uint i; i < tokens.length; i ++) owedTo += owed(tokens[i], token);
     }
 
-    function collectFromAllOwned(address wallet, IERC20 token) external {
-        uint[] memory tokens = _getOwnedTokens(wallet);
+    function collectFromAllOwned(IERC20 token) external {
+        uint[] memory tokens = _getOwnedTokens(msg.sender);
         for(uint i; i < tokens.length; i ++) collect(CollectInput(tokens[i], token));
     }
 
