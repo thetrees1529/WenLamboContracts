@@ -29,7 +29,7 @@ async function main() {
             return fart.addr != ethers.constants.AddressZero && !ignoreList.includes(fart.addr) && fart.amount != "0"
         }))
         await Promise.all(fixed.map(async tx => {
-            const success = false
+            let success = false
             while(!success) {
                 try {
                     await (await migrator.migrateMultiple(tx)).wait()
