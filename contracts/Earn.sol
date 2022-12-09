@@ -250,8 +250,16 @@ contract Earn is AccessControl {
         require(block.timestamp < unlockStart, "Unlock already started.");
         Nfv storage nfv = nfvInfo[tokenId];
         uint uintChange = uint(change);
-        if(change > int(nfv.locked)) nfv.locked += uintChange;
+        if(change > 0) nfv.locked += uintChange;
         else nfv.locked -= uintChange;
+    }
+
+    function editClaimable(uint tokenId, int change) external onlyRole(EARN_ROLE) {
+        _claim(tokenId);
+        Nfv storage nfv = nfvInfo[tokenId];
+        uint uintChange = uint(change);
+        if(change > 0) nfv.pendingClaim += uintChange;
+        else nfv.pendingClaim -= uintChange;
     }
 
     function _setLocation(uint tokenId, Location memory location) private {

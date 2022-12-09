@@ -57,18 +57,14 @@ async function main() {
     for(let i = 0; i < balances.length; i += batchSize) {
         const toProcess = balances.slice(i, i + batchSize - 1)
         await Promise.all(toProcess.map(async item => {
-            if(item === ethers.constants.AddressZero) {
-                wallets.push({
-                    address: item, 
-                    balance: "0"
-                })
-            } else {
-                const balance = await getBalance(item)
-                wallets.push({
-                    address: item, 
-                    balance: balance
-                })
-            }
+                if(item === ethers.constants.AddressZero) {
+                    wallets.push({
+                        address: item, 
+                        balance: await getBalance(item)
+                    })
+                }
+
+            
         }))
     }
 
