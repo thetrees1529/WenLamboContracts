@@ -307,7 +307,7 @@ contract Earn is AccessControl {
         Nfv storage nfv = nfvInfo[tokenId];
         uint timeSince = _claimedOrGenesis(tokenId);
         uint until = block.timestamp <= unlockEnd ? block.timestamp : unlockEnd;
-        uint timeElapsed = until - timeSince;
+        uint timeElapsed = until > timeSince ? until - timeSince : 0;
         return (nfv.locked * timeElapsed).feesOf(interest);
     }
 
