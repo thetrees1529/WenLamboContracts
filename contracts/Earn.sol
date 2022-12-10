@@ -308,8 +308,7 @@ contract Earn is AccessControl {
         uint timeSince = _claimedOrGenesis(tokenId);
         uint until = block.timestamp <= unlockEnd ? block.timestamp : unlockEnd;
         uint timeElapsed = until - timeSince;
-        uint iPS = nfv.locked.feesOf(interest);
-        return iPS * timeElapsed; 
+        return (nfv.locked * timeElapsed).feesOf(interest);
     }
 
     function _claimedOrGenesis(uint tokenId) private view returns(uint) {
