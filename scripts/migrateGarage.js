@@ -12,7 +12,7 @@ async function main() {
     const garage = await ethers.getContractAt("GarageMigrator", addr)
     const tokenIds = Array.from(Array(10000).keys())
     for(let i = 0; i < tokenIds.length; i += chunkSize) {
-        const end = i + chunkSize - 1
+        const end = i + chunkSize
         console.log(`migrating ${i} to ${end}`)
 
         const ids = tokenIds.slice(i, end)
