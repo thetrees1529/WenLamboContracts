@@ -3,7 +3,7 @@
     const en = "0x371f50796359D0B6CbDdaACbB0d45ff3BB082C52"
 const chain = "https://api.harmony.one"
 const {ethers} = hre
-const chunkSize = 50
+const chunkSize = 1
 
 
 async function main() {
