@@ -23,7 +23,7 @@ async function main() {
 
         const stages = await earn.getStages()
 
-        inputs = await Promise.all(attributes.map(async (item,index) => {
+        inputs = attributes.map((item,index) => {
 
             let data = {
                 inLocation: false,
@@ -59,8 +59,9 @@ async function main() {
                 tokenId: i + index,
                 data
             }
+        })
 
-        }))
+        console.log("now check these: \n",inputs.map(input => input.tokenId))
 
         await (await garage.migrate(inputs)).wait()
     }
