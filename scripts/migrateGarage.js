@@ -16,8 +16,11 @@ async function main() {
         console.log(`migrating ${i} to ${end}`)
 
         const ids = tokenIds.slice(i, end)
-        let attributes = await Promise.all(ids
-        .map(async id => await old.getTokenAttributes(id)))
+
+        console.log("check if 24 49 etc are in here: \n",ids)
+
+        let attributes = await Promise.all(ids.map(async id => await old.getTokenAttributes(id)))
+
         const stages = await earn.getStages()
 
         inputs = await Promise.all(attributes.map(async (item,index) => {
