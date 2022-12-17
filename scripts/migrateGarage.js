@@ -1,6 +1,6 @@
-const addr = "0x51c7984e57401CE05C088EF7D65767020c09FD2d"
-const gar="0x685d42fE7dB41431019bCff7E70AecD9Af90Fe12"
-const en = "0xF7D16A548dA5B66d1Bf86F60FA1992df34Df928E"
+    const addr = "0x1dAc74Ab578D39b0d3BCe7FD86b0923eF6d881a9"
+    const gar="0x685d42fE7dB41431019bCff7E70AecD9Af90Fe12"
+    const en = "0x371f50796359D0B6CbDdaACbB0d45ff3BB082C52"
 const chain = "https://api.harmony.one"
 const {ethers} = hre
 const chunkSize = 50
