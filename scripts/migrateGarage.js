@@ -15,7 +15,7 @@ async function main() {
         const end = i + chunkSize
         console.log(`migrating ${i} to ${end}`)
 
-        const ids = tokenIds.slice(i, end)
+        const ids = tokenIds.slice(i, end + 1)
         let attributes = await Promise.all(ids
         .map(async id => await old.getTokenAttributes(id)))
         const stages = await earn.getStages()
