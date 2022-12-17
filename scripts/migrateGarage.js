@@ -61,7 +61,7 @@ async function main() {
             }
         })
 
-        console.log("now check these: \n",inputs.map(input => input.tokenId))
+        console.log("now check these: \n",inputs)
 
         await (await garage.migrate(inputs)).wait()
     }
