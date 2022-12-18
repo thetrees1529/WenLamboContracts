@@ -34,7 +34,7 @@ contract GarageMigrator is AccessControl {
     function migrate(MigrateInput[] calldata inputs) external onlyRole(MIGRATOR_ROLE) {
         for(uint i; i < inputs.length; i ++) {
             MigrateInput calldata input = inputs[i];
-            if(migrated[input.tokenId]) return;
+            if(migrated[input.tokenId]) continue;
             migrated[input.tokenId] = true;
             earn.editLocked(input.tokenId, int(input.data.locked));
             if(input.data.inLocation) earn.setLocation(input.tokenId, input.data.newLocation);
