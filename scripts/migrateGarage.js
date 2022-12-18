@@ -3,7 +3,7 @@
     const en = "0x371f50796359D0B6CbDdaACbB0d45ff3BB082C52"
 const chain = "https://api.harmony.one"
 const {ethers} = hre
-const chunkSize = 1
+const chunkSize = 10
 
 
 async function main() {
@@ -21,6 +21,7 @@ async function main() {
     for(let i = 0; i < chunks.length; i ++) { 
 
         const ids = chunks[i]
+        console.log(ids)
 
         let attributes = await Promise.all(ids.map(async id => await old.getTokenAttributes(id)))
 
