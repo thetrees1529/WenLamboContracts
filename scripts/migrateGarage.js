@@ -13,7 +13,7 @@ async function main() {
     const tokenIds = Array.from(Array(2500).keys()).map(item => (item + 1) * 25)
     for(let i = 0; i < tokenIds.length; i += chunkSize) {
         const end = i + chunkSize
-        console.log(`migrating ${i} to ${end}`)
+        console.log(`migrating ${tokenIds[i]} to ${end - 1}`)
 
         const ids = tokenIds.slice(i, end)
 
