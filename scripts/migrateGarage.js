@@ -11,11 +11,12 @@ async function main() {
     const earn = await ethers.getContractAt("Earn", en)
     const garage = await ethers.getContractAt("GarageMigrator", addr)
     const tokenIds = Array.from(Array(2500).keys()).map(item => (item + 1) * 25)
-    for(let i = 0; i < tokenIds.length; i += chunkSize) {
-        const end = i + chunkSize
-        console.log(`migrating ${tokenIds[i]} to ${end - 1}`)
+    for(let i = 0; i < tokenIds.length; i += chunkSize) { 
+        const start = tokenIds[i]
+        const end = start + chunkSize
+        console.log(`migrating ${start} to ${end - 1}`)
 
-        const ids = tokenIds.slice(i, end)
+        const ids = tokenIds.slice(start, end)
 
         console.log("check if 24 49 etc are in here: \n",ids)
 
