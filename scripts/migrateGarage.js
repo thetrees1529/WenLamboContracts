@@ -65,7 +65,7 @@ async function main() {
             }
         })
 
-        console.log("now check these: \n",inputs)
+        console.log("now check these: \n",JSON.stringify(inputs))
 
         await (await garage.migrate(inputs)).wait()
     }
