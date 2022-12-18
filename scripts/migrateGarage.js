@@ -66,8 +66,13 @@ async function main() {
         })
 
         console.log("now check these: \n",JSON.stringify(inputs))
-
-        await (await garage.migrate(inputs)).wait()
+        let succ = false
+        while(!succ) {
+            try {
+                await (await garage.migrate(inputs)).wait()
+                succ = true
+            }catch{}
+        }
     }
 }
 
