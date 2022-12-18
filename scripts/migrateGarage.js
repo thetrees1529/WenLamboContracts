@@ -56,7 +56,7 @@ async function main() {
             data.locked = item.locked;
 
             return {
-                tokenId: (i * 25) + index,
+                tokenId: ids[index],
                 data
             }
         })
