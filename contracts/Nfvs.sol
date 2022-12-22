@@ -13,7 +13,7 @@ contract Nfvs is NfvBase {
     uint256 constant public MAX_LAMBOS = 10000;
     Counters.Counter private tokenIdCounter;
 
-    constructor(string memory name, string memory symbol) NfvBase(name, symbol) {}
+    constructor(string memory name, string memory symbol, string memory uri) Nft(name, symbol, uri) {}
 
     function mintTo(address to, uint numberOf) external onlyRole(MINTER_ROLE) {
         for(uint i; i < numberOf; i++) _mintOne(to);
@@ -21,10 +21,6 @@ contract Nfvs is NfvBase {
 
     function _mintOne(address to) private {
         uint tokenId = tokenIdCounter.current();
-        while(_exists(tokenId)) {
-            tokenIdCounter.increment();
-            tokenId = tokenIdCounter.current();
-        }
         tokenIdCounter.increment();
         _safeMint(to, tokenId);
     }

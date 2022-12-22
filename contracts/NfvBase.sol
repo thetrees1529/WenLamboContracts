@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 // import "hardhat/console.sol";
 
-contract NfvBase is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Pausable, AccessControl {
+import "@thetrees1529/solutils/contracts/nft/Nft.sol";
+
+abstract contract NfvBase is ERC721Royalty, Nft, ERC1155Holder, Pausable {
 
     struct Rent {
         bool inProgress;
@@ -30,10 +29,7 @@ contract NfvBase is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Paus
     string[] private attributeKeys;
     mapping(uint => Rent) private _rents;
 
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(RENTER_ROLE, msg.sender);
-        _setBaseURI("https://todo.wen.lambo/");
+    constructor() {
     }
 
     function setRoyalty(address receiver, uint96 feeNumerator) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -99,27 +95,20 @@ contract NfvBase is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Paus
         _unpause();
     }
 
-    function setBaseURI(string memory _newUri) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        _setBaseURI(_newUri);
-    }
-
-    function _setBaseURI(string memory _newUri) private {
-        baseUri = _newUri;
-    }
 
     // hooks / overrides
-    
-    function _baseURI() internal override view returns(string memory) {
-        return baseUri;
+
+    function _baseURI() internal virtual override(ERC721, Nft) view returns(string memory) {
+        return super._baseURI();
     }
 
-    function _transfer(address from, address to, uint tokenId) internal override {
+    function _transfer(address from, address to, uint tokenId) internal virtual whenNotPaused override {
         super._transfer(from, to, tokenId);
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint batchSize)
         internal
-        whenNotPaused
+        virtual
         override(ERC721, ERC721Enumerable)
     {
         require(!_rents[tokenId].inProgress, "Currently rented.");
@@ -130,13 +119,13 @@ contract NfvBase is ERC721, ERC721Enumerable, ERC721Royalty, ERC1155Holder, Paus
         public
         view
         virtual
-        override(ERC721, ERC721Enumerable, AccessControl, ERC721Royalty, ERC1155Receiver)
+        override(ERC721Royalty, ERC1155Receiver, Nft)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
-    function _burn(uint tokenId) internal override(ERC721, ERC721Royalty) {
+    function _burn(uint tokenId) internal virtual override(ERC721, ERC721Royalty) {
         return super._burn(tokenId);
     }
 

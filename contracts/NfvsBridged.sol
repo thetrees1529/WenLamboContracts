@@ -1,25 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./Bridgeable.sol";
+import "./BridgedNft.sol";
 import "./NfvBase.sol";
 
-contract NfvsBridged is NfvBase, Bridgeable {
+contract NfvsBridged is BridgedNft, NfvBase {
 
-    bytes32 public MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public BURNER_ROLE = keccak256("BURNER_ROLE");
+    constructor(string memory name, string memory symbol, string memory uri) BridgedNft(name, symbol, uri) {}
 
-    constructor(string memory name, string memory symbol) NfvBase(name, symbol) {}
-
-    function mintTokenId(address to, uint tokenId) external onlyRole(MINTER_ROLE) {
-        _mint(to, tokenId);
+    function _burn(uint tokenId) internal override(ERC721, NfvBase) {
+        super._burn(tokenId);
     }
 
-    function burnTokenId(uint tokenId) external onlyRole(BURNER_ROLE) {
-        _burn(tokenId);
+    function _baseURI() internal view override(NfvBase, BridgedNft) returns(string memory) {
+        return super._baseURI();
     }
 
-    function supportsInterface(bytes4 interfaceId) public override(Bridgeable, NfvBase) view returns(bool) {
+    function _transfer(address from, address to, uint tokenId) internal override(ERC721, NfvBase) {
+        super._transfer(from, to, tokenId);
+    }
+    
+    function _beforeTokenTransfer(address from, address to, uint firstTokenId, uint batchSize) internal override(ERC721Enumerable, NfvBase) {
+        super._beforeTokenTransfer(from,to,firstTokenId, batchSize);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public override(BridgedNft, NfvBase) view returns(bool) {
         return super.supportsInterface(interfaceId);
     }
 

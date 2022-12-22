@@ -10,7 +10,7 @@ async function main() {
     const old = new ethers.Contract(gar, require("../artifacts/contracts/Legacy/GarageManager.sol/IGarageManager.json").abi,new ethers.providers.JsonRpcProvider(chain))
     const earn = await ethers.getContractAt("Earn", en)
     const garage = await ethers.getContractAt("GarageMigrator", addr)
-    const tokenIds = Array.from(Array(2500).keys()).map(item => ((item + 1) * 25) - 1)
+    const tokenIds = Array.from(Array(10000).keys())
 
     const chunks = []
 
