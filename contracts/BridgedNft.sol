@@ -2,14 +2,13 @@
 pragma solidity 0.8.17;
 
 import "./Bridgeable.sol";
-import "@thetrees1529/solutils/contracts/nft/Nft.sol";
+import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 contract BridgedNft is Bridgeable, ERC721Enumerable, Nft {
 
     bytes32 public MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public BURNER_ROLE = keccak256("BURNER_ROLE");
-    string private baseUri;
 
     constructor(string memory name, string memory symbol, string memory uri) Nft(name, symbol, uri) {
     }

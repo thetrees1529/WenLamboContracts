@@ -23,7 +23,7 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
     mapping(uint => address) private _requests;
 
     //ALWAYS HAVE PAYEES BECAUSE IF THERE ARE NONE THEN THEY WILL GET THE SHIT FOR FREE
-    constructor(string memory uri, Random random, IERC20 token_, ERC20Payments.Payee[] memory payees) ERC1155PresetMinterPauser(uri) RandomConsumer(random)  {
+    constructor(string memory uri, IRandom random, IERC20 token_, ERC20Payments.Payee[] memory payees) ERC1155PresetMinterPauser(uri) RandomConsumer(random)  {
         token = token_;
         _setPayees(payees);
     }

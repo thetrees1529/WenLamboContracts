@@ -246,12 +246,15 @@ contract Earn is AccessControl {
         _setLocation(tokenId, location);
     }
 
-    function editLocked(uint tokenId, int change) external onlyRole(EARN_ROLE) {
-        require(block.timestamp < unlockStart, "Unlock already started.");
+    function addToLocked(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
+        require(!_unlockStarted(), "Unlock already started.");
         Nfv storage nfv = nfvInfo[tokenId];
-        uint uintChange = uint(change);
-        if(change > 0) nfv.locked += uintChange;
-        else nfv.locked -= uintChange;
+        nfv.locked += change;
+    }
+    function removeFromToLocked(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
+        require(!_unlockStarted(), "Unlock already started.");
+        Nfv storage nfv = nfvInfo[tokenId];
+        nfv.locked -= change;
     }
 
     function editClaimable(uint tokenId, int change) external onlyRole(EARN_ROLE) {
@@ -277,6 +280,10 @@ contract Earn is AccessControl {
             nfv.onStages = false;
             delete nfv.location;
         }
+    }
+
+    function _unlockStarted() private view returns(bool) {
+        return block.timestamp >= unlockStart;
     }
 
     function _claim(uint tokenId) private {

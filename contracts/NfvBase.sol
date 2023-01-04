@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 // import "hardhat/console.sol";
 
-import "@thetrees1529/solutils/contracts/nft/Nft.sol";
+import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 
 abstract contract NfvBase is ERC721Royalty, Nft, ERC1155Holder, Pausable {
 
