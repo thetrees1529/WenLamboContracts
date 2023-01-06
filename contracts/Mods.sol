@@ -70,6 +70,13 @@ contract Mods is Nft, RandomConsumer {
         return _attributeConfigs;
     }
 
+    function getAttributeKeys() external view returns(string[] memory keys) {
+        keys = new string[](_attributeConfigs.length);
+        for(uint i; i < keys.length; i ++) {
+            keys[i] = _attributeConfigs[i].name;
+        }
+    }
+
     function setAttributeConfigs(AttributeConfig[] calldata attributeConfigs) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _setAttributeConfigs(attributeConfigs);
     }
