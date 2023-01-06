@@ -1,23 +1,152 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity 0.8.17;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.17;
 
-// import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
-// import "@thetrees1529/solutils/contracts/gamefi/RandomConsumer.sol";
+import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
+import "@thetrees1529/solutils/contracts/gamefi/RandomConsumer.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "./Toolboxes.sol";
 
-// contract Mods is Nft {
-//     struct Mod {
-//         uint attributeId;
-//         uint value;
-//     }
-//     struct Option
+contract Mods is Nft, RandomConsumer {
+    using Counters for Counters.Counter;
+    using EnumerableSet for EnumerableSet.UintSet;
+
+    struct PerInput {
+        uint toolboxId;
+        uint per;
+    }
+    struct Mod {
+        uint attributeId;
+        uint value;
+    }
+    struct Option {
+        uint attributeId;
+        uint weighting;
+    }
+    struct Request {
+        uint value;
+        address receiver;
+    }
+    struct RequestInput {
+        uint toolboxId;
+        uint numberOf;
+    }
+    struct AttributeConfig {
+        string name;
+        uint maxPerCar;
+    }
+    struct RedeemInput {
+        uint tokenId;
+        uint modId;
+    }
+    struct AttributeCarView {
+        string attribute;
+        uint value;
+    }
+    Option[] private _options;
+    uint[] private _weightings;
+
+    Toolboxes public toolboxes;
      
-//     mapping(uint => uint) public perToolbox;
+    mapping(uint => uint) public perToolbox;
+    mapping(uint => Request) private _requests;
+    mapping(uint => Mod) private _mods;
+    mapping(uint => mapping(string => uint)) private _values;
+    AttributeConfig[] private _attributeConfigs;
+    bytes32 public constant MODS_ROLE = keccak256("MODS_ROLE");
 
+    Counters.Counter private _nextTokenId;
 
+    constructor(Toolboxes toolboxes_, IRandom random_, string memory name, string memory symbol, string memory uri, Option[] memory options, PerInput[] memory perInputs, AttributeConfig[] memory attributeConfigs) ERC721(name,symbol) Nft(uri) RandomConsumer(random_) {
+        _setOptions(options);
+        for(uint i; i < perInputs.length; i ++) {
+            _setPerToolbox(perInputs[i]);
+        }
+        toolboxes = toolboxes_;
+        _setAttributeConfigs(attributeConfigs);
+    }
 
-//     constructor(string memory name, string memory symbol, string memory uri) ERC721(name,symbol) Nft(uri) {}
+    function getAttributeConfigs() external view returns(AttributeConfig[] memory) {
+        return _attributeConfigs;
+    }
 
-//     function setPerToolbox(uint toolboxId, uint value) external onlyRole(DEFAULT_ADMIN_ROLE) {
-//         perToolbox[toolboxId] = value;
-//     }
-// }
+    function setAttributeConfigs(AttributeConfig[] calldata attributeConfigs) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setAttributeConfigs(attributeConfigs);
+    }
+
+    function setPerToolbox(PerInput memory perInput) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setPerToolbox(perInput);
+    }
+
+    function getMod(uint modId) external view returns(Mod memory) {
+        require(_exists(modId), "Mod does not exist");
+        return _mods[modId];
+    }
+
+    function burnToolboxes(RequestInput[] calldata requestInputs) external {
+        for(uint i; i < requestInputs.length; i ++) {
+            RequestInput calldata input = requestInputs[i];
+            toolboxes.burn(msg.sender, input.toolboxId, input.numberOf);
+            for(uint j; j < input.numberOf; j ++) {
+                _requests[random.requestRandom(_weightings)] = Request(perToolbox[input.toolboxId], msg.sender);
+            }
+        }
+    }
+
+    function redeemMods(RedeemInput[] calldata redeemInputs) external {
+        for(uint i; i < redeemInputs.length; i ++) {
+            _burn(redeemInputs[i].modId);
+            Mod storage mod = _mods[redeemInputs[i].modId];
+            uint current = _values[redeemInputs[i].tokenId][_attributeConfigs[mod.attributeId].name];
+            uint theoretical = current + mod.value;
+            uint n = theoretical <= _attributeConfigs[mod.attributeId].maxPerCar ? theoretical : _attributeConfigs[mod.attributeId].maxPerCar;
+            _values[redeemInputs[i].tokenId][_attributeConfigs[mod.attributeId].name] = n;
+        }
+    }
+
+    function setExp(uint256 tokenId, string memory attribute, uint256 value) external onlyRole(MODS_ROLE) {
+        _values[tokenId][attribute] = value;
+    }
+
+    function getExp(uint tokenId, string memory attribute) external view returns(uint) {
+        return _values[tokenId][attribute];
+    }
+
+    function getAttributes(uint tokenId) external view returns(AttributeCarView[] memory result) {
+        result = new AttributeCarView[](_attributeConfigs.length);
+        for(uint i; i < result.length; i ++) {
+            result[i] = AttributeCarView(_attributeConfigs[i].name, _values[tokenId][_attributeConfigs[i].name]);
+        }
+    }
+
+    function _setAttributeConfigs(AttributeConfig[] memory attributeConfigs) private {
+        delete _attributeConfigs;
+        for(uint i; i < attributeConfigs.length; i ++) {
+            _attributeConfigs.push(attributeConfigs[i]);
+        }
+    }
+
+    function _fulfillRandom(uint requestId, uint result) internal override {
+        uint tokenId = _nextTokenId.current();
+        _nextTokenId.increment();
+
+        Request storage request = _requests[requestId];
+        _mint(msg.sender, tokenId);
+
+        _mods[tokenId] = Mod(_options[result].attributeId, request.value);
+    }
+
+    function _setPerToolbox(PerInput memory perInput) private {
+        perToolbox[perInput.toolboxId] = perInput.per;
+    }
+
+    function _setOptions(Option[] memory options) private {
+        delete _options;
+        delete _weightings;
+        for(uint i; i < options.length; i ++) {
+            _options.push(options[i]);
+            _weightings.push(options[i].weighting);
+        }
+    }
+
+}
