@@ -251,18 +251,35 @@ contract Earn is AccessControl {
         Nfv storage nfv = nfvInfo[tokenId];
         nfv.locked += change;
     }
+    
     function removeFromToLocked(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
         require(!_unlockStarted(), "Unlock already started.");
         Nfv storage nfv = nfvInfo[tokenId];
         nfv.locked -= change;
     }
 
-    function editClaimable(uint tokenId, int change) external onlyRole(EARN_ROLE) {
+    function addToClaimable(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
         _claim(tokenId);
         Nfv storage nfv = nfvInfo[tokenId];
-        uint uintChange = uint(change);
-        if(change > 0) nfv.pendingClaim += uintChange;
-        else nfv.pendingClaim -= uintChange;
+        nfv.pendingClaim += change;
+    }
+
+    function removeFromClaimable(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
+        _claim(tokenId);
+        Nfv storage nfv = nfvInfo[tokenId];
+        nfv.pendingClaim -= change;
+    }
+
+    function addToInterest(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
+        _claim(tokenId);
+        Nfv storage nfv = nfvInfo[tokenId];
+        nfv.pendingInterest += change;
+    }
+
+    function removeFromInterest(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
+        _claim(tokenId);
+        Nfv storage nfv = nfvInfo[tokenId];
+        nfv.pendingInterest -= change;
     }
 
     function _setLocation(uint tokenId, Location memory location) private {

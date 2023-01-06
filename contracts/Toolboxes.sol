@@ -23,9 +23,11 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
     mapping(uint => address) private _requests;
 
     //ALWAYS HAVE PAYEES BECAUSE IF THERE ARE NONE THEN THEY WILL GET THE SHIT FOR FREE
-    constructor(string memory uri, IRandom random, IERC20 token_, ERC20Payments.Payee[] memory payees) ERC1155PresetMinterPauser(uri) RandomConsumer(random)  {
+    constructor(string memory uri, IRandom random, IERC20 token_, ERC20Payments.Payee[] memory payees, uint price_, Config[] memory configs) ERC1155PresetMinterPauser(uri) RandomConsumer(random)  {
         token = token_;
         _setPayees(payees);
+        _setPrice(price_);
+        _setConfigs(configs);
     }
 
     function purchase(uint numberOf) whenNotPaused external {
@@ -55,6 +57,9 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
 
     //PAUSE ALL PURCHASES AND WAIT FOR CHAINLINK TO PROCESS ALL REQUESTS BEFORE CHANGING CONFIGS
     function setConfigs(Config[] calldata configs) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setConfigs(configs);
+    }
+    function _setConfigs(Config[] memory configs) private {
         delete _configs;
         delete _options;
         for(uint i; i < configs.length; i ++) {
