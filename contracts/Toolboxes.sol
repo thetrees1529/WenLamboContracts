@@ -14,6 +14,11 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         uint weighting;
     }
 
+    struct Balance {
+        uint toolboxId;
+        uint balance;
+    }
+
     ERC20Payments.Payee[] private _payees;
     IERC20 public token;
     Config[] private _configs;
@@ -33,6 +38,13 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
     function purchase(uint numberOf) whenNotPaused external {
         for(uint i; i < numberOf; i ++) {
             _purchase();
+        }
+    }
+
+    function getBalances(address addr) external view returns(Balance[] memory balances) {
+        balances = new Balance[](_configs.length);
+        for(uint i; i < balances.length; i ++) {
+            balances[i] = Balance(_configs[i].toolboxId, balanceOf(addr, _configs[i].toolboxId));
         }
     }
 
