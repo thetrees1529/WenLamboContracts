@@ -14,13 +14,18 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         uint weighting;
     }
 
+    struct Request {
+        Config[] configs;
+        address receiver;
+    }
+
     ERC20Payments.Payee[] private _payees;
     IERC20 public token;
     Config[] private _configs;
     uint public price;
     //input to chainlink intermediary
     uint[] private _options;
-    mapping(uint => address) private _requests;
+    mapping(uint => Request) private _requests;
 
     //ALWAYS HAVE PAYEES BECAUSE IF THERE ARE NONE THEN THEY WILL GET THE SHIT FOR FREE
     constructor(string memory uri, IRandom random, IERC20 token_, ERC20Payments.Payee[] memory payees, uint price_, Config[] memory configs) ERC1155PresetMinterPauser(uri) RandomConsumer(random)  {
@@ -38,7 +43,11 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
 
     function _purchase() internal {
         token.splitFrom(msg.sender, price, _payees);
-        _requests[_requestRandom(_options)] = msg.sender;
+        Request storage request = _requests[_requestRandom(_options)];
+        request.receiver = msg.sender;
+        for(uint i; i < _configs.length; i ++) {
+            request.configs.push(_configs[i]);
+        }
     }
 
     function setPrice(uint newPrice) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -55,7 +64,6 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         _setURI(newUri);
     }
 
-    //PAUSE ALL PURCHASES AND WAIT FOR CHAINLINK TO PROCESS ALL REQUESTS BEFORE CHANGING CONFIGS
     function setConfigs(Config[] calldata configs) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _setConfigs(configs);
     }
@@ -81,8 +89,9 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
     }
 
     function _fulfillRandom(uint requestId, uint result) internal override {
-        address from = _requests[requestId];
-        uint toolboxId = _configs[result].toolboxId;
+        Request storage request = _requests[requestId];
+        address from = request.receiver;
+        uint toolboxId = request.configs[result].toolboxId;
         _mint(from, toolboxId, 1, "");
     }
 
