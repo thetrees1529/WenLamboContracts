@@ -1,25 +1,21 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.17;
-
-import { ERC721, ERC721Enumerable } from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 
-contract WhitelistTickets is ERC721Enumerable, AccessControl {
+contract WhitelistTickets is Nft {
     using Counters for Counters.Counter;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    constructor(string memory name, string memory symbol, string memory baseURI) ERC721(name, symbol) {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    constructor(string memory name, string memory symbol, string memory baseURI) ERC721(name, symbol) Nft( baseURI){
         _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(BURNER_ROLE, msg.sender);
-        _URI = baseURI;
     }
-    function supportsInterface(bytes4 interfaceId) public override(ERC721Enumerable, AccessControl) view returns(bool) {
-        return super.supportsInterface(interfaceId);
-    }
+    // function supportsInterface(bytes4 interfaceId) public override(ERC721Enumerable, AccessControl) view returns(bool) {
+    //     return super.supportsInterface(interfaceId);
+    // }
     Counters.Counter private _nextTokenId;
-    string private _URI;
 
     function mint(address account, uint numberOf) external {
         for(uint i; i < numberOf; i ++) mintOne(account);
@@ -43,13 +39,9 @@ contract WhitelistTickets is ERC721Enumerable, AccessControl {
         uint tokenId = tokenOfOwnerByIndex(from, balanceOf(from) - 1);
         _burn(tokenId);
     }
-
     function _getNextTokenId() private returns(uint tokenId) {
         tokenId = _nextTokenId.current();
         _nextTokenId.increment();
         return tokenId;
-    }
-    function _baseURI() internal override view returns(string memory) {
-        return _URI;
     }
 }
