@@ -21,7 +21,7 @@ contract GarageMigrator is AccessControl {
     function migrate(uint numberOf) external onlyRole(MIGRATOR_ROLE) {
         uint end = checkPoint + numberOf;
         for(uint i = checkPoint; i < end; i ++) {
-            uint tokenId = i + checkPoint - 1;
+            uint tokenId = i + checkPoint;
 
             Earn.Location memory location = source.getLocation(tokenId);
             uint claimable = source.getClaimable(tokenId);
