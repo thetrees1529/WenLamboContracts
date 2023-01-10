@@ -19,7 +19,7 @@ contract GarageMigrator is AccessControl {
         _grantRole(MIGRATOR_ROLE, msg.sender);
     }
     function migrate(uint numberOf) external onlyRole(MIGRATOR_ROLE) {
-        uint end = checkPoint += numberOf;
+        uint end = checkPoint + numberOf;
         for(uint i = checkPoint; i < end; i ++) {
             uint tokenId = i + checkPoint - 1;
 
@@ -32,6 +32,7 @@ contract GarageMigrator is AccessControl {
             target.addToClaimable(tokenId, claimable);
             target.addToLocked(tokenId, locked);
             target.addToInterest(tokenId, interest);
+            checkpoint += numberOf;
         }
     }
 }
