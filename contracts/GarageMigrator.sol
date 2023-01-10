@@ -32,7 +32,8 @@ contract GarageMigrator is AccessControl {
             target.addToClaimable(tokenId, claimable);
             target.addToLocked(tokenId, locked);
             target.addToInterest(tokenId, interest);
-            checkpoint += numberOf;
+            
         }
+        checkpoint += numberOf;
     }
 }
