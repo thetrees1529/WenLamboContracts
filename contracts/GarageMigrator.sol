@@ -27,7 +27,7 @@ contract GarageMigrator is AccessControl {
             uint claimable = source.getClaimable(tokenId);
             uint locked = source.getLocked(tokenId);
             uint interest = source.getInterest(tokenId);
-
+            if(source.isInLocation(tokenId))
             target.setLocation(tokenId, location);
             target.addToClaimable(tokenId, claimable);
             target.addToLocked(tokenId, locked);
