@@ -23,15 +23,14 @@ contract GarageMigrator is AccessControl {
         for(uint i = checkPoint; i < end; i ++) {
             uint tokenId = i;
 
-            uint claimable = source.getClaimable(tokenId);
-            uint locked = source.getLocked(tokenId);
-            uint interest = source.getInterest(tokenId);
-            if(source.isInLocation(tokenId)) {Earn.Location memory location = source.getLocation(tokenId);
+            Earn.NfvView memory nfv = source.getInformation(tokenId);
+            if(nfv.onStages) {
+                target.setLocation(tokenId, nfv.location);
+            }
             
-            target.setLocation(tokenId, location);}
-            target.addToClaimable(tokenId, claimable);
-            target.addToLocked(tokenId, locked);
-            target.addToInterest(tokenId, interest);
+            target.addToClaimable(tokenId, nfv.claimable);
+            target.addToLocked(tokenId, nfv.locked);
+            target.addToInterest(tokenId, nfv.interestable);
             
         }
         checkPoint += numberOf;
