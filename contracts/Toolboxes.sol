@@ -19,10 +19,16 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         uint balance;
     }
 
+    struct HistoryView {
+        uint toolboxId;
+        uint totalMinted;
+    }
+
     ERC20Payments.Payee[] private _payees;
     IERC20 public token;
     Config[] private _configs;
     uint public price;
+    mapping(uint => uint) private _history;
     //input to chainlink intermediary
     uint[] private _options;
     mapping(uint => address) private _requests;
@@ -33,6 +39,13 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         _setPayees(payees);
         _setPrice(price_);
         _setConfigs(configs);
+    }
+
+    function getHistory() external view returns(HistoryView[] memory history) {
+        history = new HistoryView[](_configs.length);
+        for(uint i; i < history.length; i ++) {
+            history[i] = HistoryView(_configs[i].toolboxId, _history[_configs[i].toolboxId]);
+        }
     }
 
     function purchase(uint numberOf) whenNotPaused external {
@@ -93,7 +106,9 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
 
     function _fulfillRandom(uint requestId, uint result) internal override {
         address from = _requests[requestId];
-        uint toolboxId = _configs[result].toolboxId;
+        Config storage config = _configs[result];
+        _history[config.toolboxId] ++;
+        uint toolboxId = config.toolboxId;
         _mint(from, toolboxId, 1, "");
     }
 
