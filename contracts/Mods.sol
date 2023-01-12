@@ -102,6 +102,7 @@ contract Mods is Nft, RandomConsumer {
 
     function redeemMods(RedeemInput[] calldata redeemInputs) external {
         for(uint i; i < redeemInputs.length; i ++) {
+            require(ownerOf(redeemInputs[i].modId) == msg.sender, "You don't own this mod.");
             _burn(redeemInputs[i].modId);
             Mod storage mod = _mods[redeemInputs[i].modId];
             uint current = _values[redeemInputs[i].tokenId][_attributeConfigs[mod.attributeId].name];
