@@ -19,7 +19,7 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         uint balance;
     }
 
-    struct HistoryView {
+    struct StatsView {
         uint toolboxId;
         uint totalMinted;
     }
@@ -28,7 +28,9 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
     IERC20 public token;
     Config[] private _configs;
     uint public price;
-    mapping(uint => uint) private _history;
+    mapping(uint => uint) private _stats;
+    uint[] private _history;
+    
     //input to chainlink intermediary
     uint[] private _options;
     mapping(uint => address) private _requests;
@@ -41,10 +43,18 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         _setConfigs(configs);
     }
 
-    function getHistory() external view returns(HistoryView[] memory history) {
-        history = new HistoryView[](_configs.length);
+    function getStats() external view returns(StatsView[] memory history) {
+        history = new StatsView[](_configs.length);
         for(uint i; i < history.length; i ++) {
-            history[i] = HistoryView(_configs[i].toolboxId, _history[_configs[i].toolboxId]);
+            history[i] = StatsView(_configs[i].toolboxId, _stats[_configs[i].toolboxId]);
+        }
+    }
+
+    function getHistory(uint numberOf) external view returns(uint[] memory history) {
+        history = new uint[](numberOf);
+        uint start = _history.length - numberOf;
+        for(uint i = start; i < _history.length; i ++) {
+            history[i - start] = _history[i];
         }
     }
 
@@ -107,7 +117,8 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
     function _fulfillRandom(uint requestId, uint result) internal override {
         address from = _requests[requestId];
         Config storage config = _configs[result];
-        _history[config.toolboxId] ++;
+        _stats[config.toolboxId] ++;
+        _history.push(config.toolboxId);
         uint toolboxId = config.toolboxId;
         _mint(from, toolboxId, 1, "");
     }
