@@ -138,7 +138,7 @@ contract Mods is Nft, RandomConsumer {
         _nextTokenId.increment();
 
         Request storage request = _requests[requestId];
-        _mint(msg.sender, tokenId);
+        _mint(request.receiver, tokenId);
 
         _mods[tokenId] = Mod(_options[result].attributeId, request.value);
     }
