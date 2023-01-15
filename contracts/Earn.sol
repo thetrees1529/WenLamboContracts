@@ -153,6 +153,11 @@ contract Earn is AccessControl {
         return _getPending(tokenId);
     }
 
+    function getPendingLocked(uint tokenId) external view returns(uint) {
+        uint pending = _getPending(tokenId);
+        return pending.feesOf(lockRatio);
+    }
+
     function getInterest(uint tokenId) public view returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
         return nfv.pendingInterest + _getPendingInterest(tokenId);
