@@ -145,7 +145,8 @@ contract Earn is AccessControl {
 
     function getClaimable(uint tokenId) public view returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
-        return nfv.pendingClaim + _getPending(tokenId);
+        uint pending = _getPending(tokenId);
+        return nfv.pendingClaim + (pending - pending.feesOf(lockRatio));
     }
 
     function getInterest(uint tokenId) public view returns(uint) {
