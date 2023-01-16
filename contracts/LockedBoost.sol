@@ -25,11 +25,10 @@ contract LockedBoost is AccessControl {
         uint end = checkPoint + numberOf;
         for(uint i = checkPoint; i < end; i ++) {
             uint tokenId = i;
-            (bool onStages,,,uint pendingClaim,,,,,,Earn.Location memory location) = target.nfvInfo(tokenId);
-            if(onStages && location.stage == 3) {
+            (,,,uint pendingClaim,,,,,,) = target.nfvInfo(tokenId);
                 uint toAdd = (pendingClaim * denominator) / numerator;
                 target.addToLocked(tokenId, toAdd);    
-            }
+            
 
         }
         checkPoint += numberOf;
