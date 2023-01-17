@@ -53,6 +53,7 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
     function getHistory(address addr, uint numberOf) external view returns(uint[] memory history) {
         history = new uint[](numberOf);
         uint[] storage _history_ = _history[addr];
+        numberOf = numberOf <= _history_.length ? numberOf : _history_.length;
         uint start = _history_.length - numberOf;
         for(uint i = start; i < _history_.length; i ++) {
             history[i - start] = _history_[i];
