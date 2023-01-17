@@ -24,17 +24,12 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         uint totalMinted;
     }
 
-    struct History {
-        address receiver;
-        uint toolboxId;
-    }
-
     ERC20Payments.Payee[] private _payees;
     IERC20 public token;
     Config[] private _configs;
     uint public price;
     mapping(uint => uint) private _stats;
-    History[] private _history;
+    mapping(address => uint[]) private _history;
     
     //input to chainlink intermediary
     uint[] private _options;
@@ -55,11 +50,12 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         }
     }
 
-    function getHistory(uint numberOf) external view returns(History[] memory history) {
-        history = new History[](numberOf);
-        uint start = _history.length - numberOf;
-        for(uint i = start; i < _history.length; i ++) {
-            history[i - start] = _history[i];
+    function getHistory(address addr, uint numberOf) external view returns(uint[] memory history) {
+        history = new uint[](numberOf);
+        uint[] storage _history_ = _history[addr];
+        uint start = _history_.length - numberOf;
+        for(uint i = start; i < _history_.length; i ++) {
+            history[i - start] = _history_[i];
         }
     }
 
@@ -123,7 +119,7 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer {
         address from = _requests[requestId];
         Config storage config = _configs[result];
         _stats[config.toolboxId] ++;
-        _history.push(History(from,config.toolboxId));
+        _history[from].push(config.toolboxId);
         uint toolboxId = config.toolboxId;
         _mint(from, toolboxId, 1, "");
     }
