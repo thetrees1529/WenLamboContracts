@@ -43,6 +43,7 @@ contract Mods is Nft, RandomConsumer {
         string attribute;
         uint value;
     }
+    mapping(address => Mod[]) private _history;
     Option[] private _options;
     uint[] private _weightings;
 
@@ -64,6 +65,17 @@ contract Mods is Nft, RandomConsumer {
         }
         toolboxes = toolboxes_;
         _setAttributeConfigs(attributeConfigs);
+    }
+
+    function getHistory(address from, uint numberOf) external view returns(Mod[] memory history) {
+        Mod[] storage history_ = _history[from];
+        numberOf = numberOf <= history_.length ? numberOf : history_.length;
+        history = new Mod[](numberOf);
+        uint start = history_.length - numberOf;
+        for(uint i = start; i < history_.length; i ++) {
+            history[i - start] = history_[i];
+        }
+
     }
 
     function getAttributeConfigs() external view returns(AttributeConfig[] memory) {
@@ -142,6 +154,7 @@ contract Mods is Nft, RandomConsumer {
         _mint(request.receiver, tokenId);
 
         _mods[tokenId] = Mod(_options[result].attributeId, request.value);
+        _history[request.receiver].push(Mod(_options[result].attributeId, request.value));
     }
 
     function _setPerToolbox(PerInput memory perInput) private {
