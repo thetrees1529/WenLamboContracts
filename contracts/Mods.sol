@@ -2,12 +2,14 @@
 pragma solidity 0.8.17;
 
 import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
+import "@thetrees1529/solutils/contracts/gamefi/OwnerOf.sol";
 import "@thetrees1529/solutils/contracts/gamefi/RandomConsumer.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./Toolboxes.sol";
 
 contract Mods is Nft, RandomConsumer {
+    using OwnerOf for IERC721;
     using Counters for Counters.Counter;
     using EnumerableSet for EnumerableSet.UintSet;
 
@@ -55,16 +57,18 @@ contract Mods is Nft, RandomConsumer {
     mapping(uint => mapping(string => uint)) private _values;
     AttributeConfig[] private _attributeConfigs;
     bytes32 public constant MODS_ROLE = keccak256("MODS_ROLE");
+    IERC721 public nfvs;
 
     Counters.Counter private _nextTokenId;
 
-    constructor(Toolboxes toolboxes_, IRandom random_, string memory name, string memory symbol, string memory uri, Option[] memory options, PerInput[] memory perInputs, AttributeConfig[] memory attributeConfigs) ERC721(name,symbol) Nft(uri) RandomConsumer(random_) {
+    constructor(Toolboxes toolboxes_, IRandom random_, string memory name, string memory symbol, string memory uri, Option[] memory options, PerInput[] memory perInputs, AttributeConfig[] memory attributeConfigs, IERC721 nfvs_) ERC721(name,symbol) Nft(uri) RandomConsumer(random_) {
         _setOptions(options);
         for(uint i; i < perInputs.length; i ++) {
             _setPerToolbox(perInputs[i]);
         }
         toolboxes = toolboxes_;
         _setAttributeConfigs(attributeConfigs);
+        nfvs = nfvs_;
     }
 
     function getHistory(address from, uint numberOf) external view returns(Mod[] memory history) {
@@ -115,6 +119,7 @@ contract Mods is Nft, RandomConsumer {
     function redeemMods(RedeemInput[] calldata redeemInputs) external {
         for(uint i; i < redeemInputs.length; i ++) {
             require(ownerOf(redeemInputs[i].modId) == msg.sender, "You don't own this mod.");
+            require(nfvs.isOwnerOf(msg.sender, redeemInputs[i].tokenId));
             _burn(redeemInputs[i].modId);
             Mod storage mod = _mods[redeemInputs[i].modId];
             uint current = _values[redeemInputs[i].tokenId][_attributeConfigs[mod.attributeId].name];
