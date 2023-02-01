@@ -24,7 +24,12 @@ contract Reflections2 is Ownable {
         token = token_;
     }
 
-    function register(uint tokenId) external {
+    function register(uint[] calldata tokenIds) external {
+        for(uint i; i < tokenIds.length; i ++) register(tokenIds[i]);
+    }
+
+    function register(uint tokenId) public {
+        require(nfvs.isOwnerOf(msg.sender, tokenId), "You don't own this one.");
         update();
         Nfv storage nfv = _nfvs[tokenId];
         nfv.debt = _checkpoint;
@@ -37,10 +42,6 @@ contract Reflections2 is Ownable {
     }
 
     function getOwed(uint tokenId) public view returns(uint) {
-        try nfvs.ownerOf(tokenId) returns(address) {
-        } catch {
-            return 0;
-        }
         Nfv storage nfv = _nfvs[tokenId];
         if(!nfv.registered) return 0;
         return _checkpoint - nfv.debt;
@@ -55,7 +56,7 @@ contract Reflections2 is Ownable {
         require(nfvs.isOwnerOf(msg.sender, tokenId), "You don't own this one.");
         uint owed = getOwed(tokenId);
         token.transfer(msg.sender, owed);
-        _lastBalance = token.balanceOf(address(this));
+        _lastBalance -= owed;
     }
 
     function emergencyWithdraw() external onlyOwner {
@@ -65,7 +66,7 @@ contract Reflections2 is Ownable {
 
     function _pendingCheckpoint() private view returns(uint) {
         uint balance = token.balanceOf(address(this));
-        return _lastBalance == balance ? _checkpoint : _checkpoint + ((balance - _lastBalance) / IERC721Enumerable(address(nfvs)).totalSupply());
+        return balance > _lastBalance ? _checkpoint : _checkpoint + ((balance - _lastBalance) / IERC721Enumerable(address(nfvs)).totalSupply());
     }
 
 }
