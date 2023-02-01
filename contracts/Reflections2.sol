@@ -47,7 +47,7 @@ contract Reflections2 is Ownable {
         }
     }
 
-    function getOwed(uint tokenId) public view returns(uint) {
+    function owed(uint tokenId) public view returns(uint) {
         Nfv storage nfv = _nfvs[tokenId];
         if(!nfv.registered) return 0;
         return _checkpoint - nfv.debt;
@@ -60,7 +60,7 @@ contract Reflections2 is Ownable {
     function claim(uint tokenId) public {
         update();
         require(nfvs.isOwnerOf(msg.sender, tokenId), "You don't own this one.");
-        uint owed = getOwed(tokenId);
+        uint owed = owed(tokenId);
         token.transfer(msg.sender, owed);
         _lastBalance -= owed;
     }
