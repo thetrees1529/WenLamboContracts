@@ -39,8 +39,12 @@ contract Reflections2 is Ownable {
     }
 
     function update() public {
-        uint pendingCheckpoint = _pendingCheckpoint();
-        if(pendingCheckpoint > _checkpoint) _checkpoint = pendingCheckpoint;
+        uint balance = token.balanceOf(address(this));
+        if(balance > _lastBalance) {
+            uint toSplit = balance - _lastBalance;
+            uint eachGets = toSplit / _registered;
+            _checkpoint += eachGets;
+        }
     }
 
     function getOwed(uint tokenId) public view returns(uint) {
@@ -63,12 +67,6 @@ contract Reflections2 is Ownable {
 
     function emergencyWithdraw() external onlyOwner {
         token.transfer(msg.sender, token.balanceOf(address(this)));
-    }
-
-
-    function _pendingCheckpoint() private view returns(uint) {
-        uint balance = token.balanceOf(address(this));
-        return balance > _lastBalance ? _checkpoint : _checkpoint + ((balance - _lastBalance) / _registered);
     }
 
 }
