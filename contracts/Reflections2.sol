@@ -13,6 +13,7 @@ contract Reflections2 is Ownable {
     IERC20 public token;
     uint private _lastBalance;
     uint private _checkpoint;
+    uint private _registered;
     struct Nfv {
         bool registered;
         uint debt;
@@ -34,6 +35,7 @@ contract Reflections2 is Ownable {
         Nfv storage nfv = _nfvs[tokenId];
         nfv.debt = _checkpoint;
         nfv.registered = true;
+        _registered ++;
     }
 
     function update() public {
@@ -66,7 +68,7 @@ contract Reflections2 is Ownable {
 
     function _pendingCheckpoint() private view returns(uint) {
         uint balance = token.balanceOf(address(this));
-        return balance > _lastBalance ? _checkpoint : _checkpoint + ((balance - _lastBalance) / IERC721Enumerable(address(nfvs)).totalSupply());
+        return balance > _lastBalance ? _checkpoint : _checkpoint + ((balance - _lastBalance) / _registered);
     }
 
 }
