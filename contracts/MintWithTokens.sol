@@ -5,7 +5,7 @@ import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Nfvs.sol";
 
-contract Mint is Ownable { 
+contract MintWithTokens is Ownable { 
     using ERC20Payments for IERC20;
     IERC20 public token;
     uint public mintPrice;
