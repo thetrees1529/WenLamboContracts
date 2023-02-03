@@ -60,9 +60,9 @@ contract Reflections2 is Ownable {
     function claim(uint tokenId) public {
         update();
         require(nfvs.isOwnerOf(msg.sender, tokenId), "You don't own this one.");
-        uint owed = owed(tokenId);
-        token.transfer(msg.sender, owed);
-        _lastBalance -= owed;
+        uint owed_ = owed(tokenId);
+        token.transfer(msg.sender, owed_);
+        _lastBalance -= owed_;
     }
 
     function emergencyWithdraw() external onlyOwner {
