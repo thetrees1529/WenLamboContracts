@@ -17,11 +17,12 @@ contract Mint is Ownable {
     uint public maxMinted;
     Nfvs private _nfvs;
     ERC20Payments.Payee[] private _payees;
-    constructor(Nfvs nfvs, uint mintPrice_, uint maxMinted_, ERC20Payments.Payee[] memory payees) {
+    constructor(Nfvs nfvs, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees) {
         _payees = payees;
         _nfvs = nfvs;
         mintPrice = mintPrice_;
         maxMinted = maxMinted_;
+        token = token_;
     }
     function mint(uint numberOf) external payable {
         uint payment = numberOf * mintPrice;
