@@ -5,7 +5,8 @@ import "@thetrees1529/solutils/contracts/payments/Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Nfvs.sol";
 
-contract Mint is Ownable, Payments {
+contract Mint is Ownable, Payments { 
+
     uint public mintPrice;
     //has been manually ended
     bool public ended;

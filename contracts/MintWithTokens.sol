@@ -18,7 +18,9 @@ contract MintWithTokens is Ownable {
     Nfvs private _nfvs;
     ERC20Payments.Payee[] private _payees;
     constructor(Nfvs nfvs, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees) {
-        _payees = payees;
+        for(uint i; i < payees.length; i ++) {
+            _payees.push(payees[i]);
+        }
         _nfvs = nfvs;
         mintPrice = mintPrice_;
         maxMinted = maxMinted_;
