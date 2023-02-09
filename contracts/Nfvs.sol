@@ -22,7 +22,7 @@ contract Nfvs is NfvBase {
     function _mintOne(address to) private {
         uint tokenId = tokenIdCounter.current();
         tokenIdCounter.increment();
-        _safeMint(to, tokenId);
+        _mint(to, tokenId);
     }
 
     function _mint(address to, uint tokenId) internal override {
