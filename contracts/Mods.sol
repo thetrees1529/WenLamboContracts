@@ -62,6 +62,7 @@ contract Mods is Nft, RandomConsumer {
     Counters.Counter private _nextTokenId;
 
     constructor(Toolboxes toolboxes_, IRandom random_, string memory name, string memory symbol, string memory uri, Option[] memory options, PerInput[] memory perInputs, AttributeConfig[] memory attributeConfigs, IERC721 nfvs_) ERC721(name,symbol) Nft(uri) RandomConsumer(random_) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setOptions(options);
         for(uint i; i < perInputs.length; i ++) {
             _setPerToolbox(perInputs[i]);

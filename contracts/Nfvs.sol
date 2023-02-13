@@ -13,7 +13,9 @@ contract Nfvs is NfvBase {
     uint256 constant public MAX_LAMBOS = 10000;
     Counters.Counter private tokenIdCounter;
 
-    constructor(string memory name, string memory symbol, string memory uri) ERC721(name,symbol) Nft( uri) {}
+    constructor(string memory name, string memory symbol, string memory uri) ERC721(name,symbol) Nft( uri) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     function mintTo(address to, uint numberOf) external onlyRole(MINTER_ROLE) {
         for(uint i; i < numberOf; i++) _mintOne(to);

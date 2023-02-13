@@ -6,7 +6,9 @@ import "./NfvBase.sol";
 
 contract NfvsBridged is BridgedNft, NfvBase {
 
-    constructor(string memory name, string memory symbol, string memory uri) BridgedNft(name, symbol, uri) {}
+    constructor(string memory name, string memory symbol, string memory uri) BridgedNft(name, symbol, uri) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     function _burn(uint tokenId) internal override(ERC721, NfvBase) {
         super._burn(tokenId);

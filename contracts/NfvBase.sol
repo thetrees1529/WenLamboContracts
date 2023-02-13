@@ -30,6 +30,7 @@ abstract contract NfvBase is ERC721Royalty, Nft, ERC1155Holder, Pausable {
     mapping(uint => Rent) private _rents;
 
     constructor() {
+        
     }
 
     function setRoyalty(address receiver, uint96 feeNumerator) external onlyRole(DEFAULT_ADMIN_ROLE) {
