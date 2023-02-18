@@ -11,6 +11,7 @@ contract BridgedNft is Bridgeable, ERC721Enumerable, Nft {
     bytes32 public BURNER_ROLE = keccak256("BURNER_ROLE");
 
     constructor(string memory name, string memory symbol, string memory uri) ERC721(name, symbol) Nft(uri) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function mintTokenId(address to, uint tokenId) external onlyRole(MINTER_ROLE) {

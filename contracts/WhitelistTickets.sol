@@ -9,6 +9,7 @@ contract WhitelistTickets is Nft {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
     constructor(string memory name, string memory symbol, string memory baseURI) ERC721(name, symbol) Nft( baseURI){
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(BURNER_ROLE, msg.sender);
     }
