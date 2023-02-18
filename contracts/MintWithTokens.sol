@@ -32,7 +32,7 @@ contract MintWithTokens is Ownable {
         require(totalMinted + numberOf <= maxMinted, "Too many.");
         _beforeMint(msg.sender, numberOf);
         totalMinted += numberOf;
-        _nfvs.mintTo(msg.sender, numberOf);
+        _nfvs.mint(msg.sender, numberOf);
         token.splitFrom(msg.sender, payment, _payees);
     }
     function _beforeMint(address to, uint numberOf) internal virtual {}
