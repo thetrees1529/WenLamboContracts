@@ -28,6 +28,7 @@ abstract contract NfvBase is ERC721Royalty, Nft, ERC1155Holder, Pausable {
 
     string[] private attributeKeys;
     mapping(uint => Rent) private _rents;
+    mapping(address => bool) public blacklisted;
 
     constructor() {
         
@@ -35,6 +36,10 @@ abstract contract NfvBase is ERC721Royalty, Nft, ERC1155Holder, Pausable {
 
     function setRoyalty(address receiver, uint96 feeNumerator) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _setDefaultRoyalty(receiver, feeNumerator);
+    }
+
+    function setBlacklistStatus(address addr, bool status) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        blacklisted[addr] = status;
     }
 
     function tokensOfOwner(address _owner) external view returns (uint256[] memory) {
@@ -113,6 +118,7 @@ abstract contract NfvBase is ERC721Royalty, Nft, ERC1155Holder, Pausable {
         override(ERC721, ERC721Enumerable)
     {
         require(!_rents[tokenId].inProgress, "Currently rented.");
+        require(!blacklisted[from] && !blacklisted[to], "Blacklisted.");
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
