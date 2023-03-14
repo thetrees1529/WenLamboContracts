@@ -9,7 +9,8 @@ contract TokenMerge {
     }
     Token public newToken;
     Item[] private _items;
-    constructor(Item[] memory items) {
+    constructor(Token newToken_, Item[] memory items) {
+        newToken = newToken_;
         for(uint i; i < items.length; i ++) {
             _items.push(items[i]);
         }
