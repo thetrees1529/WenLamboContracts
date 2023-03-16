@@ -22,7 +22,7 @@ contract TokenMerge {
         Option storage option = _options[optionId];
         uint toBurn = option.perToken * numberOfTokens; 
         option.token.burnFrom(msg.sender, toBurn);
-        newToken.mintTo(msg.sender, numberOfTokens);
+        newToken.mintTo(msg.sender, numberOfTokens * ONE_TOKEN);
     }
 
 }
