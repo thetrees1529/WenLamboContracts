@@ -21,7 +21,7 @@ contract TokenMerge {
     //dont convert to wei the token is assumed to be 18 decimals in the contract and only whole numbers can be input
     function merge(uint numberOfTokens, uint optionId) external {
         Option storage option = _options[optionId];
-        uint toBurn = option.perToken * numberOfTokens; 
+        uint toBurn = (option.perToken * ONE_TOKEN) * numberOfTokens; 
         option.token.burnFrom(msg.sender, toBurn);
         newToken.mintTo(msg.sender, numberOfTokens * ONE_TOKEN);
     }
