@@ -18,11 +18,11 @@ contract TokenMerge {
     function getOptions() external view returns(Option[] memory items) {
         return _options;
     }
-    function merge(uint into, uint optionId) external {
+    function merge(uint numberOfTokens, uint optionId) external {
         Option storage option = _options[optionId];
-        uint toBurn = (option.perToken * into) / ONE_TOKEN; 
+        uint toBurn = option.perToken * numberOfTokens; 
         option.token.burnFrom(msg.sender, toBurn);
-        newToken.mintTo(msg.sender, into);
+        newToken.mintTo(msg.sender, numberOfTokens);
     }
 
 }
