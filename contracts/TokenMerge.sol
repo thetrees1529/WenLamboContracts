@@ -18,6 +18,7 @@ contract TokenMerge {
     function getOptions() external view returns(Option[] memory items) {
         return _options;
     }
+    //dont convert to wei the token is assumed to be 18 decimals in the contract and only whole numbers can be input
     function merge(uint numberOfTokens, uint optionId) external {
         Option storage option = _options[optionId];
         uint toBurn = option.perToken * numberOfTokens; 
