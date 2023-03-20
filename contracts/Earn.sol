@@ -65,7 +65,7 @@ contract Earn is AccessControl {
         uint reflected;
     }
 
-    function getInformation(uint tokenId) external view returns(NfvView memory nfv) {
+    function getInformation(uint tokenId) external view minted(tokenId) returns(NfvView memory nfv) {
         return NfvView({
             claimable: getClaimable(tokenId),
             locked: getLocked(tokenId),
@@ -145,27 +145,27 @@ contract Earn is AccessControl {
         return _stages;
     }
 
-    function getUnlockedClaimable(uint tokenId) external view returns(uint) {
+    function getUnlockedClaimable(uint tokenId) external view minted(tokenId) returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
         uint pending = _getPending(tokenId);
         return nfv.pendingClaim + (pending - pending.feesOf(lockRatio));
     }
 
-    function getClaimable(uint tokenId) public view returns(uint) {
+    function getClaimable(uint tokenId) public view minted(tokenId) returns(uint) {
         return _getPending(tokenId);
     }
 
-    function getPendingLocked(uint tokenId) external view returns(uint) {
+    function getPendingLocked(uint tokenId) external view minted(tokenId) returns(uint) {
         uint pending = _getPending(tokenId);
         return pending.feesOf(lockRatio);
     }
 
-    function getInterest(uint tokenId) public view returns(uint) {
+    function getInterest(uint tokenId) public view minted(tokenId) returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
         return nfv.pendingInterest + _getPendingInterest(tokenId);
     }
 
-    function getLocked(uint tokenId) public view returns(uint) {
+    function getLocked(uint tokenId) public view minted(tokenId) returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
         return nfv.locked - nfv.unlocked;
     }
@@ -177,7 +177,7 @@ contract Earn is AccessControl {
         _mintTo(msg.sender, toUnlock);
     }
 
-    function getUnlockable(uint tokenId) public view returns(uint){
+    function getUnlockable(uint tokenId) public view minted(tokenId) returns(uint){
         Nfv storage nfv = nfvInfo[tokenId];
         uint totalTime = unlockEnd - unlockStart;
         uint timeElapsed; 
@@ -244,11 +244,11 @@ contract Earn is AccessControl {
         }
     }
 
-    function isInLocation(uint tokenId) external view returns(bool) {
+    function isInLocation(uint tokenId) external view  minted(tokenId) returns(bool) {
         return nfvInfo[tokenId].onStages;
     }
 
-    function getLocation(uint tokenId) external view returns(Location memory) {
+    function getLocation(uint tokenId) external view minted(tokenId) returns(Location memory) {
         Nfv storage nfv = nfvInfo[tokenId];
         require(nfv.onStages, "Not in a location.");
         return nfv.location;
@@ -387,6 +387,16 @@ contract Earn is AccessControl {
 
     modifier onlyOwnerOf(uint tokenId) {
         require(OwnerOf.isOwnerOf(nfvs, msg.sender, tokenId), "Does not own NFT.");
+        _;
+    }
+
+    modifier minted(uint tokenId) {
+        try nfvs.ownerOf(tokenId) returns(address) {
+            revert("Not minted.");
+        } catch {
+
+        }
+        
         _;
     }
 
