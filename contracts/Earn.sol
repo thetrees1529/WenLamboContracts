@@ -11,6 +11,8 @@ import "./Token.sol";
 
 contract Earn is AccessControl {
 
+    uint constant public EARN_SPEED_CONVERSION = 11574074074074;
+
     using Fees for uint;
     using ERC20Payments for IERC20;
 
@@ -336,7 +338,7 @@ contract Earn is AccessControl {
         Location storage location = nfv.location;
         uint emission = nfv.onStages ? _getSubstage(location).emission : baseEarn;
         uint timeEarning = block.timestamp - earningSince;
-        return timeEarning * emission;
+        return timeEarning * (emission * EARN_SPEED_CONVERSION);
     }
 
     function _getPendingInterest(uint tokenId) private view returns(uint) {
