@@ -23,6 +23,13 @@ contract EarnMigrator {
         }
     }
 
+    function migrateRange(uint start, uint end) external {
+        uint[] memory tokenIds = new uint[](end - start);
+        for(uint i; i < tokenIds.length; i ++) {
+            migrate(tokenIds[i] + start);
+        }
+    }
+
     function migrate(uint tokenId) public {
         require(!done[tokenId], "Already done.");
         done[tokenId] = true;
