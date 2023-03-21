@@ -7,10 +7,12 @@ contract EarnMigrator {
     using Fees for uint;
     Earn public source;
     Earn public dest;
+    uint public divisor;
 
     mapping(uint => bool) public done;
 
-    constructor(Earn source_, Earn dest_) {
+    constructor(Earn source_, Earn dest_, uint divisor_) {
+        divisor = divisor_;
         source = source_;
         dest = dest_;
     }
@@ -24,9 +26,9 @@ contract EarnMigrator {
     function migrate(uint tokenId) public {
         require(!done[tokenId], "Already done.");
         done[tokenId] = true;
-        uint unlockedClaimable = source.getUnlockedClaimable(tokenId);
-        uint locked = source.getLocked(tokenId);
-        uint interest = source.getInterest(tokenId);
+        uint unlockedClaimable = source.getUnlockedClaimable(tokenId) / divisor;
+        uint locked = source.getLocked(tokenId) / divisor;
+        uint interest = source.getInterest(tokenId) / divisor;
         if(source.isInLocation(tokenId)) {
             dest.setLocation(tokenId, source.getLocation(tokenId));
         }
