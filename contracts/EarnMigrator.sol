@@ -15,7 +15,13 @@ contract EarnMigrator {
         dest = dest_;
     }
 
-    function migrate(uint tokenId) external {
+    function migrate(uint[] calldata tokenIds) external {
+        for(uint i; i < tokenIds.length; i ++) {
+            migrate(tokenIds[i]);
+        }
+    }
+
+    function migrate(uint tokenId) public {
         require(!done[tokenId], "Already done.");
         done[tokenId] = true;
         uint unlockedClaimable = source.getUnlockedClaimable(tokenId);
