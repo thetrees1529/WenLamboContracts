@@ -392,9 +392,8 @@ contract Earn is AccessControl {
 
     modifier minted(uint tokenId) {
         try nfvs.ownerOf(tokenId) returns(address) {
-            revert("Not minted.");
         } catch {
-
+            revert("Not minted.");
         }
         
         _;
