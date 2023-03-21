@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import "./Earn.sol";
 
 contract EarnMigrator {
+    using Fees for uint;
     Earn public source;
     Earn public dest;
     uint public divisor;
@@ -14,6 +15,8 @@ contract EarnMigrator {
         divisor = divisor_;
         source = source_;
         dest = dest_;
+        (uint parts,uint outOf) = source.lockRatio();
+        _lock = Fees.Fee(parts,outOf);
     }
 
     function migrate(uint[] calldata tokenIds) external {
@@ -29,12 +32,20 @@ contract EarnMigrator {
         }
     }
 
+    Fees.Fee private _lock;
+
     function migrate(uint tokenId) public {
         require(!done[tokenId], "Already done.");
         done[tokenId] = true;
-        uint unlockedClaimable = source.getUnlockedClaimable(tokenId) / divisor;
-        uint locked = source.getLocked(tokenId) / divisor;
-        uint interest = source.getInterest(tokenId) / divisor;
+        Earn.NfvView memory data = source.getInformation(tokenId);
+
+        uint pendingClaim = data.claimable;
+        uint pendingLocked = pendingClaim.feesOf(_lock);
+
+
+        uint unlockedClaimable = (pendingClaim - pendingLocked) / divisor;
+        uint locked = (data.locked + pendingLocked) / divisor;
+        uint interest = data.interestable / divisor;
         if(source.isInLocation(tokenId)) {
             dest.setLocation(tokenId, source.getLocation(tokenId));
         }
