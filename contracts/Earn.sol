@@ -52,6 +52,8 @@ contract Earn is AccessControl {
 
     struct NfvView {
         uint claimable;
+        uint unlockedClaimable;
+        uint lockedClaimable;
         uint interestable;
         uint locked;
         uint unlockable;
@@ -68,6 +70,8 @@ contract Earn is AccessControl {
     function getInformation(uint tokenId) external view minted(tokenId) returns(NfvView memory nfv) {
         return NfvView({
             claimable: getClaimable(tokenId),
+            unlockedClaimable: getUnlockedClaimable(tokenId),
+            lockedClaimable: getPendingLocked(tokenId),
             locked: getLocked(tokenId),
             unlockable: getUnlockable(tokenId),
             interestable: getInterest(tokenId),
@@ -145,7 +149,7 @@ contract Earn is AccessControl {
         return _stages;
     }
 
-    function getUnlockedClaimable(uint tokenId) external view minted(tokenId) returns(uint) {
+    function getUnlockedClaimable(uint tokenId) public view minted(tokenId) returns(uint) {
         Nfv storage nfv = nfvInfo[tokenId];
         uint pending = _getPending(tokenId);
         return nfv.pendingClaim + (pending - pending.feesOf(lockRatio));
@@ -155,7 +159,7 @@ contract Earn is AccessControl {
         return _getPending(tokenId);
     }
 
-    function getPendingLocked(uint tokenId) external view minted(tokenId) returns(uint) {
+    function getPendingLocked(uint tokenId) public view minted(tokenId) returns(uint) {
         uint pending = _getPending(tokenId);
         return pending.feesOf(lockRatio);
     }
