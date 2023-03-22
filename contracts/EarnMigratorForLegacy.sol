@@ -26,9 +26,8 @@ contract EarnMigrator {
     }
 
     function migrateRange(uint start, uint end) external {
-        uint[] memory tokenIds = new uint[](end - start);
-        for(uint i; i < tokenIds.length; i ++) {
-            migrate(tokenIds[i] + start);
+        for(uint i; i < end-start; i ++) {
+            migrate(i + start);
         }
     }
 
