@@ -269,7 +269,7 @@ contract Earn is AccessControl {
         nfv.locked += change;
     }
     
-    function removeFromToLocked(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
+    function removeFromLocked(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
         require(!_unlockStarted(), "Unlock already started.");
         _claim(tokenId);
         Nfv storage nfv = nfvInfo[tokenId];

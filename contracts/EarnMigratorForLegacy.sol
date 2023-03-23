@@ -43,9 +43,16 @@ contract EarnMigratorForLegacy {
     Fees.Fee private _lock;
 
     function migrate(uint tokenId) public {
-        require(!done[tokenId], "Cannot migrate twice.");;
+        require(!done[tokenId], "Cannot migrate twice.");
         require(tokenId <= CUTOFF, "Cannot migrate mints after cutoff.");
         done[tokenId] = true;
+
+        Earn.NfvView memory destData = dest.getInformation(tokenId);
+        dest.removeFromLocked(tokenId, destData.locked + destData.lockedClaimable);
+        dest.removeFromClaimable(tokenId, destData.unlockedClaimable);
+        dest.removeFromInterest(tokenId, destData.interestable);
+
+
         EarnOld.NfvView memory data = source.getInformation(tokenId);
 
         uint pendingClaim = data.claimable;
