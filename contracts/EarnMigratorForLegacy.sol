@@ -2,16 +2,17 @@
 pragma solidity 0.8.17;
 
 import "./Earn.sol";
+import "./Dependencies/EarnOld.sol";
 
 contract EarnMigratorForLegacy {
     using Fees for uint;
-    Earn public source;
+    EarnOld public source;
     Earn public dest;
     uint public divisor;
 
     mapping(uint => bool) public done;
 
-    constructor(Earn source_, Earn dest_, uint divisor_) {
+    constructor(EarnOld source_, Earn dest_, uint divisor_) {
         divisor = divisor_;
         source = source_;
         dest = dest_;
@@ -36,7 +37,7 @@ contract EarnMigratorForLegacy {
     function migrate(uint tokenId) public {
         require(!done[tokenId], "Already done.");
         done[tokenId] = true;
-        Earn.NfvView memory data = source.getInformation(tokenId);
+        EarnOld.NfvView memory data = source.getInformation(tokenId);
 
         uint pendingClaim = data.claimable;
         uint pendingLocked = pendingClaim.feesOf(_lock);
@@ -46,7 +47,8 @@ contract EarnMigratorForLegacy {
         uint locked = (data.locked + pendingLocked) / divisor;
         uint interest = data.interestable / divisor;
         if(source.isInLocation(tokenId)) {
-            dest.setLocation(tokenId, source.getLocation(tokenId));
+            EarnOld.Location memory location = source.getLocation(tokenId);
+            dest.setLocation(tokenId, Earn.Location(location.stage, location.substage));
         }
         dest.addToClaimable(tokenId, unlockedClaimable);
         dest.addToLocked(tokenId, locked);
