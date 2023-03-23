@@ -43,7 +43,7 @@ contract EarnMigratorForLegacy {
     Fees.Fee private _lock;
 
     function migrate(uint tokenId) public {
-        if(done[tokenId]) return;
+        require(!done[tokenId], "Cannot migrate twice.");;
         require(tokenId <= CUTOFF, "Cannot migrate mints after cutoff.");
         done[tokenId] = true;
         EarnOld.NfvView memory data = source.getInformation(tokenId);
