@@ -21,6 +21,13 @@ contract EarnMigratorForLegacy {
         _lock = Fees.Fee(parts,outOf);
     }
 
+    function doneMultiple(uint[] calldata tokenIds) external view returns(bool[] memory res) {
+        res = new bool[](tokenIds.length);
+        for(uint i; i < tokenIds.length; i ++) {
+            res[i] = done[tokenIds[i]];
+        }
+    }
+
     function migrate(uint[] calldata tokenIds) external {
         for(uint i; i < tokenIds.length; i ++) {
             migrate(tokenIds[i]);
