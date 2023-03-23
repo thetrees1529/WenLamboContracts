@@ -9,14 +9,15 @@ contract EarnMigratorForLegacy {
     EarnOld public source;
     Earn public dest;
     uint public divisor;
-    uint public constant CUTOFF = 3999;
+    uint public CUTOFF;
 
     mapping(uint => bool) public done;
 
-    constructor(EarnOld source_, Earn dest_, uint divisor_) {
+    constructor(EarnOld source_, Earn dest_, uint divisor_, uint CUTOFF_) {
         divisor = divisor_;
         source = source_;
         dest = dest_;
+        CUTOFF = CUTOFF_;
         (uint parts,uint outOf) = source.lockRatio();
         _lock = Fees.Fee(parts,outOf);
     }
