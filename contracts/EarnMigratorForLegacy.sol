@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "./Earn.sol";
 
-contract EarnMigrator {
+contract EarnMigratorForLegacy {
     using Fees for uint;
     Earn public source;
     Earn public dest;
