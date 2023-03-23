@@ -9,6 +9,7 @@ contract EarnMigratorForLegacy {
     EarnOld public source;
     Earn public dest;
     uint public divisor;
+    uint public constant CUTOFF = 3999;
 
     mapping(uint => bool) public done;
 
@@ -35,6 +36,7 @@ contract EarnMigratorForLegacy {
     Fees.Fee private _lock;
 
     function migrate(uint tokenId) public {
+        require(tokenId <= CUTOFF, "Cannot migrate mints after cutoff.");
         require(!done[tokenId], "Already done.");
         done[tokenId] = true;
         EarnOld.NfvView memory data = source.getInformation(tokenId);

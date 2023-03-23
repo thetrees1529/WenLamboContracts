@@ -16,7 +16,7 @@ contract EarnMigrator {
         dest = dest_;
     }
 
-    function migrate(uint[] calldata tokenIds) external {
+    function migrateList(uint[] calldata tokenIds) external {
         for(uint i; i < tokenIds.length; i ++) {
             migrate(tokenIds[i]);
         }
