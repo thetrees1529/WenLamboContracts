@@ -22,7 +22,7 @@ async function main() {
 async function migrate(tokenIds) {
     console.log("Doing: ",tokenIds)
 
-    await (await migrator.migrateList(tokenIds)).wait()
+    await (await migrator.migrate(tokenIds)).wait()
 
 }
 
