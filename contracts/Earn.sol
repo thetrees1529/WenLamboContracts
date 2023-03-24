@@ -104,20 +104,7 @@ contract Earn is AccessControl {
     constructor(IERC721 nfvs_, Token token_, Stage[] memory stages, Fees.Fee memory lockRatio_, Fees.Fee memory burnRatio_, Fees.Fee memory interest_, uint unlockStart_, uint unlockEnd_, uint baseEarn_, uint mintCap_) {
         token = token_;
         nfvs = nfvs_;
-        for(uint i; i < stages.length; i ++) {
-            Stage memory stage = stages[i];
-            Stage storage _stage = _stages.push();
-            _stage.name = stage.name;
-            for(uint j; j < stage.substages.length; j ++) {
-                Substage memory substage = stage.substages[j];
-                Substage storage _substage = _stage.substages.push();
-                _substage.name = substage.name;
-                _substage.emission = substage.emission;
-                for(uint k; k < substage.payments.length; k ++) {
-                    _substage.payments.push(substage.payments[k]);
-                }
-            }
-        }
+        _setStages(stages);
         lockRatio = lockRatio_;
         burnRatio = burnRatio_;
         interest = interest_;
@@ -127,6 +114,10 @@ contract Earn is AccessControl {
         baseEarn = baseEarn_;
         mintCap = mintCap_;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
+
+    function setStages(Stage[] calldata stages) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setStages(stages);
     }
 
     function setPayees(ERC20Payments.Payee[] calldata payees) external onlyRole(DEFAULT_ADMIN_ROLE) {
