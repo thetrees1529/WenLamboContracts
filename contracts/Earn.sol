@@ -83,6 +83,7 @@ contract Earn is AccessControl {
 
     bytes32 public EARN_ROLE = keccak256("EARN_ROLE"); 
 
+    bool private _initialised;
     uint public genesis;
     uint public unlockStart;
     uint public unlockEnd;
@@ -314,6 +315,31 @@ contract Earn is AccessControl {
         if(nfv.onStages) {
             nfv.onStages = false;
             delete nfv.location;
+        }
+    }
+
+    function _setStages(Stage[] memory stages) private {
+        if(_initialised){
+            require(stages.length == _stages.length);
+            for(uint i; i < stages.length; i ++) {
+                require(stages[i].substages.length == _stages[i].substages.length);
+            }
+            delete _stages;
+            _initialised = true;
+        }
+        for(uint i; i < stages.length; i ++) {
+            Stage memory stage = stages[i];
+            Stage storage _stage = _stages.push();
+            _stage.name = stage.name;
+            for(uint j; j < stage.substages.length; j ++) {
+                Substage memory substage = stage.substages[j];
+                Substage storage _substage = _stage.substages.push();
+                _substage.name = substage.name;
+                _substage.emission = substage.emission;
+                for(uint k; k < substage.payments.length; k ++) {
+                    _substage.payments.push(substage.payments[k]);
+                }
+            }
         }
     }
 
