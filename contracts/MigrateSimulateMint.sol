@@ -13,7 +13,7 @@ contract MigrateSimulateMint is Mint {
     mapping(uint16 => bool) private _golds;
     Earn public earn;
 
-    constructor(Earn earn_, Nfvs nfvs, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees, uint16[] memory golds, uint startFrom_) Mint(nfvs, mintPrice_, maxMinted_, payees) {
+    constructor(Earn earn_, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees, uint16[] memory golds, uint startFrom_) Mint(Nfvs(address(earn_.nfvs())), mintPrice_, maxMinted_, payees) {
         for(uint i; i < golds.length; i ++) _golds[golds[i]] = true;
         startFrom = startFrom_;
         earn = earn_;
