@@ -14,7 +14,7 @@ contract Mint is Ownable, Payments {
     uint public totalMinted;
     //maximum number of nfvs minted through this contract
     uint public maxMinted;
-    Nfvs private _nfvs;
+    Nfvs internal _nfvs;
     constructor(Nfvs nfvs, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) {
         _setPayees(payees);
         _nfvs = nfvs;

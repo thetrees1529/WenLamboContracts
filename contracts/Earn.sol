@@ -116,6 +116,7 @@ contract Earn is AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    //Avoid changing emissions because all pending amounts will backtrack to the new value. 
     function setStages(Stage[] calldata stages) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _setStages(stages);
     }
