@@ -15,7 +15,7 @@ contract MintWithTokens is Ownable {
     uint public totalMinted;
     //maximum number of nfvs minted through this contract
     uint public maxMinted;
-    Nfvs private _nfvs;
+    Nfvs internal _nfvs;
     ERC20Payments.Payee[] private _payees;
     constructor(Nfvs nfvs, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees) {
         for(uint i; i < payees.length; i ++) {
