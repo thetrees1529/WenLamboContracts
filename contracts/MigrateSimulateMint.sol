@@ -12,14 +12,24 @@ contract MigrateSimulateMint is Mint {
     uint public startFrom;
     mapping(uint16 => bool) private _golds;
     Earn public earn;
+    uint16 constant private splitInto = 256 / 16;
 
-    constructor(Earn earn_, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees, uint16[] memory golds, uint startFrom_) Mint(Nfvs(address(earn_.nfvs())), mintPrice_, maxMinted_, payees) {
-        for(uint i; i < golds.length; i ++) _golds[golds[i]] = true;
+    constructor(Earn earn_, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees, uint startFrom_) Mint(Nfvs(address(earn_.nfvs())), mintPrice_, maxMinted_, payees) {
         startFrom = startFrom_;
         earn = earn_;
     }
 
     Fees.Fee private _lockRatio;
+
+    function akhjsdfas(uint[] calldata a) external onlyOwner {
+        for(uint i; i < a.length; i ++) {
+            uint b = a[i];
+            for(uint j; j < splitInto; j ++) {
+                uint16 value = uint16(b / (2**(j * splitInto)));
+                if(value != 0) _golds[value] = true;
+            }
+        }
+    }
 
     function _beforeMint(address, uint numberOf) internal override {
 
