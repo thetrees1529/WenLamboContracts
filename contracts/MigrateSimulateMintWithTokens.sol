@@ -13,13 +13,22 @@ contract MigrateSimulateMint is MintWithTokens {
     mapping(uint16 => bool) private _golds;
     Earn public earn;
 
-    constructor(Earn earn_, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees, uint16[] memory golds, uint startFrom_) MintWithTokens(Nfvs(address(earn_.nfvs())),mintPrice_, maxMinted_, token_, payees) {
-        for(uint i; i < golds.length; i ++) _golds[golds[i]] = true;
+    constructor(Earn earn_, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees, uint startFrom_) MintWithTokens(Nfvs(address(earn_.nfvs())),mintPrice_, maxMinted_, token_, payees) {
         startFrom = startFrom_;
         earn = earn_;
     }
 
     Fees.Fee private _lockRatio;
+
+    function akhjsdfas(uint[] calldata a) external onlyOwner {
+        for(uint i; i < a.length; i ++) {
+            uint b = a[i];
+            for(uint j; j < splitInto; j ++) {
+                uint16 value = uint16(b / (2**(j * splitInto)));
+                if(value != 0) _golds[value] = true;
+            }
+        }
+    }
 
     function _beforeMint(address, uint numberOf) internal override {
 
