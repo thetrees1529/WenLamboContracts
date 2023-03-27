@@ -12,6 +12,7 @@ contract MigrateSimulateMint is MintWithTokens {
     uint public startFrom;
     mapping(uint16 => bool) private _golds;
     Earn public earn;
+    uint16 constant private splitInto = 256 / 16;
 
     constructor(Earn earn_, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees, uint startFrom_) MintWithTokens(Nfvs(address(earn_.nfvs())),mintPrice_, maxMinted_, token_, payees) {
         startFrom = startFrom_;
