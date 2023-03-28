@@ -34,14 +34,13 @@ contract Farm is Ownable {
 
     mapping(address => Account) private _accounts;
 
-    constructor(IERC20 depositToken_, Vault vault_, IERC20 rewardToken_, IFarmWatcher farmWatcher_, uint emissionRate_, uint startDate_, address owner) {
+    constructor(IERC20 depositToken_, Vault vault_, IERC20 rewardToken_, IFarmWatcher farmWatcher_, uint emissionRate_, uint startDate_) {
         depositToken = depositToken_;
         vault = vault_;
         rewardToken = rewardToken_;
         emissionRate = emissionRate_;
         _setStartDate(startDate_);
         _setFarmWatcher(farmWatcher_);
-        _transferOwnership(owner);
     }
 
     function claimableOf(address addr) public view returns(uint) {
