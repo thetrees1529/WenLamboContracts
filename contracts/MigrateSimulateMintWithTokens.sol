@@ -63,7 +63,7 @@ contract MigrateSimulateMint is MintWithTokens {
                 emission = baseEarn;
             }
 
-            uint toAccountFor = emission * 1 days * time;
+            uint toAccountFor = emission * earn.EARN_SPEED_CONVERSION() * time;
             uint locked = toAccountFor.feesOf(_lockRatio);
             uint unlocked = toAccountFor - locked;
 
