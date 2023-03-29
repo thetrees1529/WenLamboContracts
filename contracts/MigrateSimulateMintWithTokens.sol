@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./MintWithTokens.sol";
 import "./Earn.sol";
 
-contract MigrateSimulateMint is MintWithTokens {
+contract MigrateSimulateMintWithTokens is MintWithTokens {
     using Fees for uint;
 
     uint public startFrom;
