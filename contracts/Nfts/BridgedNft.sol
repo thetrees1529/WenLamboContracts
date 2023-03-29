@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./Bridgeable.sol";
+import "./extensions/Bridgeable.sol";
 import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 

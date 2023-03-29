@@ -3,7 +3,7 @@ pragma solidity 0.8.17;
 
 import "@thetrees1529/solutils/contracts/payments/Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./WhitelistTickets.sol";
+import "../Nfts/WhitelistTickets.sol";
 import "./Mint.sol";
 
 

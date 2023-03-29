@@ -5,3 +5,12 @@ while(numbers.length) {
 }
 const result = chunks.map(chunk => chunk.reduce((a,el,i) => a + (el * (BigInt(2**(16*i)))) ), BigInt(0))
 console.log(result)
+
+const decoded = result.map(chunk => {
+    let res = []
+    for(let i = 0; i < 16; i ++) {
+        res.push(chunk / BigInt(2**(16*i)))
+    }
+    return res
+})
+console.log(decoded)

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./Vault.sol";
-import "./IFarmWatcher.sol";
+import "../Rewards/Vault.sol";
+import "./extensions/IFarmWatcher.sol";
 
 contract Farm is Ownable {
 

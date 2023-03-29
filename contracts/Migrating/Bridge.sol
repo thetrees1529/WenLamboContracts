@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "./Bridgeable.sol";
+import "../Nfts/extensions/Bridgeable.sol";
 
 contract Bridge is AccessControl, ERC721Holder, Pausable {
 

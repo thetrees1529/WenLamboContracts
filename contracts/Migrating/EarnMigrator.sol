@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./Earn.sol";
+import "../Game/Earn.sol";
 
 contract EarnMigrator {
     Earn public source;

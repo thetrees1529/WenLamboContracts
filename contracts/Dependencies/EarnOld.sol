@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@thetrees1529/solutils/contracts/gamefi/OwnerOf.sol";
 import "@thetrees1529/solutils/contracts/payments/Fees.sol";
 import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
-import "../Token.sol";
+import "../Token/Token.sol";
 
 contract EarnOld is AccessControl {
 

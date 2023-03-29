@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./BridgedNft.sol";
+import "../Nfts/BridgedNft.sol";
 import "./NfvBase.sol";
 
 contract NfvsBridged is BridgedNft, NfvBase {

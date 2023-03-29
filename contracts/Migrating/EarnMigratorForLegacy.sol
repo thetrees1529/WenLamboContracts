@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "./Earn.sol";
-import "./Dependencies/EarnOld.sol";
+import "../Game/Earn.sol";
+import "../Dependencies/EarnOld.sol";
 
 contract EarnMigratorForLegacy {
     using Fees for uint;

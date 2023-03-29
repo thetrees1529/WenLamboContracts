@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./Token.sol";
+import "../Token/Token.sol";
 
 contract Migrator is AccessControl {
     bytes32 public MIGRATOR_ROLE = keccak256("MIGRATOR_ROLE");

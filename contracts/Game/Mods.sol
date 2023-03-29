@@ -6,7 +6,7 @@ import "@thetrees1529/solutils/contracts/gamefi/OwnerOf.sol";
 import "@thetrees1529/solutils/contracts/gamefi/RandomConsumer.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import "./Toolboxes.sol";
+import "../Nfts/Toolboxes.sol";
 
 contract Mods is Nft, RandomConsumer {
     using OwnerOf for IERC721;

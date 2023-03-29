@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "./Earn.sol";
+import "../Game/Earn.sol";
 
 contract LockedBoost is AccessControl {
 
