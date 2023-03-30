@@ -56,10 +56,11 @@ contract Farm is Ownable {
     }
 
     function deposit(uint amount) external {
+        _update();
         Account storage account = _accounts[msg.sender];
 
         uint shares = amount / SHARE;
-        uint debt = shares * _pendingPerShare();
+        uint debt = shares * _perShare;
         account.debt += debt;
         account.shares += shares;
         _shareCount += shares;
@@ -68,14 +69,15 @@ contract Farm is Ownable {
         _debt += debt;
         depositToken.transferFrom(msg.sender, address(this), amount);
 
-        farmWatcher.deposited(msg.sender, amount);
+        if(address(farmWatcher) != address(0)) farmWatcher.deposited(msg.sender, amount);
     }
 
     function withdraw(uint amount) external {
+        _update();
         Account storage account = _accounts[msg.sender];
 
         uint shares = amount / SHARE;
-        uint owed = shares * _pendingPerShare();
+        uint owed = shares * _perShare;
         account.owed += owed;
         account.shares -= shares;
         _shareCount -= shares;
@@ -84,7 +86,7 @@ contract Farm is Ownable {
         _owed += owed;
         depositToken.transfer(msg.sender, amount);
 
-        farmWatcher.withdrawn(msg.sender, amount);
+        if(address(farmWatcher) != address(0)) farmWatcher.withdrawn(msg.sender, amount);
     }
 
     function claim() external {
@@ -92,9 +94,11 @@ contract Farm is Ownable {
         uint toClaim = _claimableOf(account);
         account.debt += toClaim;
         totalClaimed += toClaim;
+
+        _debt += toClaim;
         vault.withdraw(rewardToken, msg.sender, toClaim);
 
-        farmWatcher.claimed(msg.sender, toClaim);
+        if(address(farmWatcher) != address(0)) farmWatcher.claimed(msg.sender, toClaim);
     }
 
     function setStartDate(uint newStartDate) external onlyOwner {
@@ -114,7 +118,7 @@ contract Farm is Ownable {
 
     function _pendingPerShare() private view returns(uint) {
         if(_isBeforeStartDate()) return 0;
-        return _perShare + (((block.timestamp - _emittingFrom) * emissionRate) / _shareCount);
+        return _perShare + (_shareCount > 0 ? ((block.timestamp - _emittingFrom) * emissionRate) / _shareCount : 0);
     }
 
     function _setFarmWatcher(IFarmWatcher newFarmWatcher) private {
@@ -126,7 +130,6 @@ contract Farm is Ownable {
     }
 
     function _setStartDate(uint newStartDate) private {
-        require(newStartDate >= block.timestamp, "Cannot set start date in the past.");
         startDate = newStartDate;
         _emittingFrom = newStartDate;
     }
