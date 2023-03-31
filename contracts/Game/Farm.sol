@@ -96,6 +96,7 @@ contract Farm is Ownable {
         totalClaimed += toClaim;
 
         _debt += toClaim;
+        totalClaimed += toClaim;
         vault.withdraw(rewardToken, msg.sender, toClaim);
 
         if(address(farmWatcher) != address(0)) farmWatcher.claimed(msg.sender, toClaim);
@@ -109,7 +110,6 @@ contract Farm is Ownable {
     function setEmissionRate(uint newEmissionRate) external onlyOwner {
         _update();
         emissionRate = newEmissionRate;
-        _emittingFrom = block.timestamp;
     }
 
     function setFarmWatcher(IFarmWatcher newFarmWatcher) external onlyOwner {
@@ -117,8 +117,8 @@ contract Farm is Ownable {
     }
 
     function _pendingPerShare() private view returns(uint) {
-        if(_isBeforeStartDate()) return 0;
-        return _perShare + (_shareCount > 0 ? ((block.timestamp - _emittingFrom) * emissionRate) / _shareCount : 0);
+        if(_isBeforeStartDate() || _shareCount == 0) return 0;
+        return _perShare + ((block.timestamp - _emittingFrom) * emissionRate) / _shareCount;
     }
 
     function _setFarmWatcher(IFarmWatcher newFarmWatcher) private {
@@ -141,6 +141,7 @@ contract Farm is Ownable {
     function _update() private {
         uint pendingPerShare = _pendingPerShare();
         if(pendingPerShare != _perShare) _perShare = pendingPerShare;
+        _emittingFrom = block.timestamp;
     }
 
 }

@@ -23,15 +23,6 @@ contract FarmManager is Ownable {
 
     Farm[] private _farms;
 
-    function getFarmAddressFor(IERC20 depositToken) external view returns(Farm) {
-        for(uint i = 0; i < _farms.length; i++) {
-            if(_farms[i].depositToken() == depositToken) {
-                return _farms[i];
-            }
-        }
-        revert("Farm does not exist for this token.");
-    }
-
     function getFarmsData() external view returns(FarmData[] memory) {
         FarmData[] memory farmsData = new FarmData[](_farms.length);
         for(uint i = 0; i < _farms.length; i++) {
@@ -54,41 +45,31 @@ contract FarmManager is Ownable {
     }
 
     function createFarm(IERC20 depositToken, Vault vault, IERC20 rewardToken, IFarmWatcher farmWatcher, uint emissionRate, uint startDate) external onlyOwner {
-        for(uint i = 0; i < _farms.length; i++) {
-            require(_farms[i].depositToken() != depositToken, "Farm already exists for this token.");
-        }
         Farm farm = new Farm(depositToken, vault, rewardToken, farmWatcher, emissionRate, startDate);
         _farms.push(farm);
         vault.grantRole(vault.VAULT_ROLE(), address(farm));
     }
 
-    function setFarmStartDate(IERC20 depositToken, uint newStartDate) external onlyOwner {
-        for(uint i = 0; i < _farms.length; i++) {
-            if(_farms[i].depositToken() == depositToken) {
-                _farms[i].setStartDate(newStartDate);
-                return;
-            }
-        }
-        revert("Farm does not exist for this token.");
+    /*
+    blocks all claims
+    if you just want to pause a farm you should set the emission rate to 0 instead 
+    so that people can still claim for a while before calling this function 
+    */
+    function removeFarm(uint i) external onlyOwner {
+        _farms[i].vault().revokeRole(_farms[i].vault().VAULT_ROLE(), address(_farms[i]));
+        _farms[i] = _farms[_farms.length - 1];
+        _farms.pop();
     }
 
-    function setFarmEmissionRate(IERC20 depositToken, uint newEmissionRate) external onlyOwner {
-        for(uint i = 0; i < _farms.length; i++) {
-            if(_farms[i].depositToken() == depositToken) {
-                _farms[i].setEmissionRate(newEmissionRate);
-                return;
-            }
-        }
-        revert("Farm does not exist for this token.");
+    function setFarmStartDate(uint i, uint newStartDate) external onlyOwner {
+        _farms[i].setStartDate(newStartDate);
     }
 
-    function setFarmWatcher(IERC20 depositToken, IFarmWatcher newFarmWatcher) external onlyOwner {
-        for(uint i = 0; i < _farms.length; i++) {
-            if(_farms[i].depositToken() == depositToken) {
-                _farms[i].setFarmWatcher(newFarmWatcher);
-                return;
-            }
-        }
-        revert("Farm does not exist for this token.");
+    function setFarmEmissionRate(uint i, uint newEmissionRate) external onlyOwner {
+        _farms[i].setEmissionRate(newEmissionRate);
+    }
+
+    function setFarmWatcher(uint i, IFarmWatcher newFarmWatcher) external onlyOwner {
+        _farms[i].setFarmWatcher(newFarmWatcher);
     }
 }
