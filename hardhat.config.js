@@ -6,11 +6,11 @@ module.exports = {
     compilers: [
       {
         settings: {
-          viaIR: true,
-          optimizer: {
-            enabled: true,
-            runs: 200
-          }
+          // viaIR: true,
+          // optimizer: {
+          //   enabled: true,
+          //   runs: 200
+          // }
         },
 
         version: "0.8.17"

@@ -47,6 +47,10 @@ contract Farm is Ownable {
         return _claimableOf(_accounts[addr]);
     }
 
+    function depositedOf(address addr) public view returns(uint) {
+        return _accounts[addr].shares * SHARE;
+    }
+
     function globalClaimable() external view returns(uint) {
         return (_pendingPerShare() * _shareCount) + _owed - _debt;
     }
@@ -55,51 +59,28 @@ contract Farm is Ownable {
         return _shareCount * SHARE;
     }
 
-    function deposit(uint amount) external {
-        _update();
-        Account storage account = _accounts[msg.sender];
-
-        uint shares = amount / SHARE;
-        uint debt = shares * _perShare;
-        account.debt += debt;
-        account.shares += shares;
-        _shareCount += shares;
-
-        totalDeposited += amount;
-        _debt += debt;
-        depositToken.transferFrom(msg.sender, address(this), amount);
-
-        if(address(farmWatcher) != address(0)) farmWatcher.deposited(msg.sender, amount);
-    }
-
-    function withdraw(uint amount) external {
-        _update();
-        Account storage account = _accounts[msg.sender];
-
-        uint shares = amount / SHARE;
-        uint owed = shares * _perShare;
-        account.owed += owed;
-        account.shares -= shares;
-        _shareCount -= shares;
-
-        totalWithdrawn += amount;
-        _owed += owed;
-        depositToken.transfer(msg.sender, amount);
-
-        if(address(farmWatcher) != address(0)) farmWatcher.withdrawn(msg.sender, amount);
+    function claimFor(address from) external onlyOwner {
+        _claim(from);
     }
 
     function claim() external {
-        Account storage account = _accounts[msg.sender];
-        uint toClaim = _claimableOf(account);
-        account.debt += toClaim;
-        totalClaimed += toClaim;
+        _claim(msg.sender);
+    }
 
-        _debt += toClaim;
-        totalClaimed += toClaim;
-        vault.withdraw(rewardToken, msg.sender, toClaim);
+    function depositFrom(address from, uint amount) external onlyOwner {
+        _deposit(from, amount);
+    }
 
-        if(address(farmWatcher) != address(0)) farmWatcher.claimed(msg.sender, toClaim);
+    function deposit(uint amount) external {
+        _deposit(msg.sender, amount);
+    }
+
+    function withdrawFrom(address to, uint amount) external onlyOwner {
+        _withdraw(to, amount);
+    }
+
+    function withdraw(uint amount) external {
+        _withdraw(msg.sender, amount);
     }
 
     function setStartDate(uint newStartDate) external onlyOwner {
@@ -118,7 +99,7 @@ contract Farm is Ownable {
 
     function _pendingPerShare() private view returns(uint) {
         if(_isBeforeStartDate() || _shareCount == 0) return 0;
-        return _perShare + ((block.timestamp - _emittingFrom) * emissionRate) / _shareCount;
+        return _perShare + (((block.timestamp - _emittingFrom) * emissionRate) / _shareCount);
     }
 
     function _setFarmWatcher(IFarmWatcher newFarmWatcher) private {
@@ -132,6 +113,52 @@ contract Farm is Ownable {
     function _setStartDate(uint newStartDate) private {
         startDate = newStartDate;
         _emittingFrom = newStartDate;
+    }
+
+    function _claim(address from) private {
+        Account storage account = _accounts[from];
+        uint toClaim = _claimableOf(account);
+        account.debt += toClaim;
+        totalClaimed += toClaim;
+
+        _debt += toClaim;
+        vault.withdraw(rewardToken, from, toClaim);
+
+        if(address(farmWatcher) != address(0)) farmWatcher.claimed(from, toClaim);
+    }
+
+    function _deposit(address from, uint amount) private {
+        _update();
+        Account storage account = _accounts[from];
+
+        uint shares = amount / SHARE;
+        uint debt = shares * _perShare;
+        account.debt += debt;
+        account.shares += shares;
+        _shareCount += shares;
+
+        totalDeposited += amount;
+        _debt += debt;
+        depositToken.transferFrom(from, address(this), amount);
+
+        if(address(farmWatcher) != address(0)) farmWatcher.deposited(from, amount);
+    }
+
+    function _withdraw(address from, uint amount) private {
+        _update();
+        Account storage account = _accounts[from];
+
+        uint shares = amount / SHARE;
+        uint owed = shares * _perShare;
+        account.owed += owed;
+        account.shares -= shares;
+        _shareCount -= shares;
+
+        totalWithdrawn += amount;
+        _owed += owed;
+        depositToken.transfer(from, amount);
+
+        if(address(farmWatcher) != address(0)) farmWatcher.withdrawn(from, amount);
     }
 
     function _claimableOf(Account storage account) private view returns(uint) {

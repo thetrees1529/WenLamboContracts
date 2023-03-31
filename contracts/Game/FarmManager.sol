@@ -6,6 +6,16 @@ import "../Token/Token.sol";
 
 contract FarmManager is Ownable {
 
+    struct DepositInput {
+        uint farmIndex;
+        uint amount;
+    }
+
+    struct WithdrawInput {
+        uint farmIndex;
+        uint amount;
+    }
+
     struct FarmData {
         Farm implementation;
         IERC20 depositToken;
@@ -19,11 +29,14 @@ contract FarmManager is Ownable {
         uint totalClaimed;
         uint globalClaimable;
         uint currentlyDeposited;
+        uint userDeposited;
+        uint userClaimable;
     }
 
     Farm[] private _farms;
 
-    function getFarmsData() external view returns(FarmData[] memory) {
+    //input the zero address if there is no wallet involved
+    function getFarmsDataFor(address addr) external view returns(FarmData[] memory) {
         FarmData[] memory farmsData = new FarmData[](_farms.length);
         for(uint i = 0; i < _farms.length; i++) {
             farmsData[i] = FarmData({
@@ -38,10 +51,44 @@ contract FarmManager is Ownable {
                 totalWithdrawn: _farms[i].totalWithdrawn(),
                 totalClaimed: _farms[i].totalClaimed(),
                 globalClaimable: _farms[i].globalClaimable(),
-                currentlyDeposited: _farms[i].currentlyDeposited()
+                currentlyDeposited: _farms[i].currentlyDeposited(),
+                userDeposited: _farms[i].depositedOf(addr),
+                userClaimable: _farms[i].claimableOf(addr)
             });
         }
         return farmsData;
+    }
+
+    function deposit(DepositInput[] calldata inputs) external {
+        for(uint i = 0; i < inputs.length; i++) {
+            _farms[inputs[i].farmIndex].depositFrom(msg.sender, inputs[i].amount);
+        }
+    }
+
+    function withdraw(WithdrawInput[] calldata inputs) external {
+        for(uint i = 0; i < inputs.length; i++) {
+            _farms[inputs[i].farmIndex].withdrawFrom(msg.sender, inputs[i].amount);
+        }
+    }
+
+    function claim(uint[] calldata farmIndexes) external {
+        for(uint j = 0; j < farmIndexes.length; j++)
+            _farms[farmIndexes[j]].claimFor(msg.sender);
+    }
+
+    function withdrawAll() external {
+        for(uint i = 0; i < _farms.length; i++) {
+            uint deposited = _farms[i].depositedOf(msg.sender);
+            if(deposited > 0)
+                _farms[i].withdrawFrom(msg.sender, deposited);
+        }
+    }
+
+    function claimAll() external {
+        for(uint i = 0; i < _farms.length; i++) {
+            if(_farms[i].claimableOf(msg.sender) > 0)
+                _farms[i].claimFor(msg.sender);
+        }
     }
 
     function createFarm(IERC20 depositToken, Vault vault, IERC20 rewardToken, IFarmWatcher farmWatcher, uint emissionRate, uint startDate) external onlyOwner {
