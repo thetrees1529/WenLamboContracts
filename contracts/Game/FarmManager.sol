@@ -16,10 +16,16 @@ contract FarmManager is Ownable {
         uint amount;
     }
 
+    struct TokenInfo {
+        IERC20 implementation;
+        string name;
+        string symbol;
+    }
+
     struct FarmData {
         Farm implementation;
-        IERC20 depositToken;
-        IERC20 rewardToken;
+        TokenInfo depositToken;
+        TokenInfo rewardToken;
         Vault vault;
         IFarmWatcher farmWatcher;
         uint emissionRate;
@@ -41,8 +47,8 @@ contract FarmManager is Ownable {
         for(uint i = 0; i < _farms.length; i++) {
             farmsData[i] = FarmData({
                 implementation: _farms[i],
-                depositToken: _farms[i].depositToken(),
-                rewardToken: _farms[i].rewardToken(),
+                depositToken: _getTokenInfo(_farms[i].depositToken()),
+                rewardToken: _getTokenInfo(_farms[i].rewardToken()),
                 vault: _farms[i].vault(),
                 farmWatcher: _farms[i].farmWatcher(),
                 emissionRate: _farms[i].emissionRate(),
@@ -118,5 +124,13 @@ contract FarmManager is Ownable {
 
     function setFarmWatcher(uint i, IFarmWatcher newFarmWatcher) external onlyOwner {
         _farms[i].setFarmWatcher(newFarmWatcher);
+    }
+
+    function _getTokenInfo(IERC20 token) private view returns(TokenInfo memory) {
+        return TokenInfo({
+            implementation: token,
+            name: ERC20(address(token)).name(),
+            symbol: ERC20(address(token)).symbol()
+        });
     }
 }
