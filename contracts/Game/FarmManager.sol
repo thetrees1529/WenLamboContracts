@@ -37,6 +37,8 @@ contract FarmManager is Ownable {
         uint currentlyDeposited;
         uint userDeposited;
         uint userClaimable;
+
+        uint allowanceOnDepositToken;
     }
 
     Farm[] private _farms;
@@ -59,7 +61,8 @@ contract FarmManager is Ownable {
                 globalClaimable: _farms[i].globalClaimable(),
                 currentlyDeposited: _farms[i].currentlyDeposited(),
                 userDeposited: _farms[i].depositedOf(addr),
-                userClaimable: _farms[i].claimableOf(addr)
+                userClaimable: _farms[i].claimableOf(addr),
+                allowanceOnDepositToken: _farms[i].depositToken().allowance(addr, address(_farms[i]))
             });
         }
         return farmsData;
