@@ -2,12 +2,11 @@
 pragma solidity 0.8.17;
 
 import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
-import "@openzeppelin/contracts/token/ERC1155/presets/ERC1155PresetMinterPauser.sol";
 import "@thetrees1529/solutils/contracts/gamefi/RandomConsumer.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../Dependencies/ERC721EnumerableAndERC1155PresetMinterPauserSingleSetApprovalForAll.sol";
 
-contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerable, ReentrancyGuard {
+contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerable2, ReentrancyGuard {
 
     using ERC20Payments for IERC20;
 
@@ -53,7 +52,7 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerabl
     mapping(uint => address) private _requests;
 
     //ALWAYS HAVE PAYEES BECAUSE IF THERE ARE NONE THEN THEY WILL GET THE SHIT FOR FREE
-    constructor(string memory uri, string memory name, IRandom random, IERC20 token_, ERC20Payments.Payee[] memory payees, uint price_, Config[] memory configs) ERC1155PresetMinterPauser(uri) RandomConsumer(random) ERC721(uri, name) {
+    constructor(string memory uri, string memory name, IRandom random, IERC20 token_, ERC20Payments.Payee[] memory payees, uint price_, Config[] memory configs) ERC1155PresetMinterPauser(uri) RandomConsumer(random) ERC7212(uri, name) {
         token = token_;
         _setPayees(payees);
         _setPrice(price_);
@@ -155,13 +154,13 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerabl
         _mint(from, toolboxId, 1, "");
     }
 
-    function _setApprovalForAll(address owner, address operator, bool approved) internal override(ERC1155, ERC721) {
+    function _setApprovalForAll(address owner, address operator, bool approved) internal override(ERC1155, ERC7212) {
         ERC1155._setApprovalForAll(owner, operator, approved);
-        ERC721._setApprovalForAll(owner, operator, approved);
+        ERC7212._setApprovalForAll(owner, operator, approved);
     }
 
 
-    //accounting for erc1155 transfers (updating erc721 side)
+    //accounting for erc1155 transfers (updating ERC7212 side)
     function _beforeTokenTransfer(address operator, address from, address to, uint[] memory ids, uint[] memory amounts, bytes memory data) internal override {
         if(magicLock) return super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
 
@@ -175,21 +174,21 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerabl
 
             for(uint j; j < amount; j ++) {
                 if(from != address(0) && to != address(0)) {
-                    //transfer an erc721 it represents
+                    //transfer an ERC7212 it represents
                     uint tokenId = _removeErc721From(from, id);
                     _transfer(from, to, tokenId);
                     _erc721sOf[to][id].push(tokenId);
                 }
                 if(to == address(0) && from != address(0)) {
-                    //burn an erc721 it represents
+                    //burn an ERC7212 it represents
                     _burn(_removeErc721From(from, id));
                 }
                 if(from == address(0) && to != address(0)) {
-                    //mint an erc721 it represents
+                    //mint an ERC7212 it represents
                     uint tokenId = _newERC721TokenId();
                     _mint(to, tokenId);
 
-                    //add to erc721 tracking
+                    //add to ERC7212 tracking
                     _erc721sOf[to][id].push(tokenId);
                     _erc721ToErc1155[tokenId] = ERC721ToERC1155(id, _erc721sOf[to][id].length - 1);
                 }
@@ -202,7 +201,7 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerabl
         super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
-    //accounting for erc721 transfers (updating erc1155 side)
+    //accounting for ERC7212 transfers (updating erc1155 side)
     function _beforeTokenTransfer(
         address from,
         address to,
@@ -233,7 +232,7 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerabl
     }
 
 
-    //prevents eternal loop back and forth between _beforeTokenTransfer on erc721 and erc1155.
+    //prevents eternal loop back and forth between _beforeTokenTransfer on ERC7212 and erc1155.
     bool private magicLock;
 
     function _removeErc721From(address addr, uint id) private returns(uint tokenId) {
@@ -247,15 +246,15 @@ contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerabl
         _nextTokenId ++;
     }
 
-    function setApprovalForAll(address operator, bool approved) public override(IERC721, ERC721, ERC1155) {
+    function setApprovalForAll(address operator, bool approved) public override(IERC7212, ERC7212, ERC1155) {
         _setApprovalForAll(msg.sender, operator, approved);
     }
     
-    function isApprovedForAll(address account, address operator) public view override(IERC721, ERC721, ERC1155) returns (bool) {
+    function isApprovedForAll(address account, address operator) public view override(IERC7212, ERC7212, ERC1155) returns (bool) {
         return super.isApprovedForAll(account, operator);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable, ERC1155PresetMinterPauser) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721Enumerable2, ERC1155PresetMinterPauser) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
