@@ -8,11 +8,6 @@ import "@thetrees1529/solutils/contracts/gamefi/RandomConsumer.sol";
 
 contract Toolboxes is ERC721Enumerable, RandomConsumer, AccessControl {
 
-    constructor(string memory name, string memory symbol, IERC20 token_, IRandom random) ERC721(name, symbol) RandomConsumer(random) {
-        token = token_;
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
-
     struct Config {
         string name;
         uint weighting;
@@ -41,6 +36,11 @@ contract Toolboxes is ERC721Enumerable, RandomConsumer, AccessControl {
 
     mapping(uint => string) public toolboxes;
     mapping(uint => address) private _requests;
+
+    constructor(string memory name, string memory symbol, IERC20 token_, IRandom random) ERC721(name, symbol) RandomConsumer(random) {
+        token = token_;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     function setConfig(Config[] calldata config) external onlyRole(DEFAULT_ADMIN_ROLE) {
         delete _config;
