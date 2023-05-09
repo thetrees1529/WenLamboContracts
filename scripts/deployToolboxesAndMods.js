@@ -6,16 +6,17 @@ const toolboxesSymbol = "tboxes"
 const tokenAddress = "0x5138f9fDAFdDb313Fff6FdDbAf86FB61734C1ce9"
 const payees = [["0xABCD0baDa7ad8d922DD687Cc61FFc65c75C2F8FD",1]]
 const price = "100000000000000000000"
-const config = [[0,1],[1,1],[2,1]]
+const config = [["bronze",1],["silver",1],["gold",1]]
 
 //mods
 const name = "Mods"
 const symbol = "MODS"
 const modsURI = "modsUri"
 const nfvsAddress = "0x0c6abF36D8945720B28E05EE5EdcDa01f18a0cea"
-const perInputs = [["bronze",[1,100]],["silver",[2,100]],["gold",[3,100]]]
-const attributeConfigs = ["tires","power", "handing","speed"]
-const attributeBruh = [["tires",1],["handing",1],["speed",1]]
+const valuePerToolboxes = [["bronze",1],["silver",2],["gold",3]]
+const attributeList = ["tires","power", "handling","speed"]
+const configs = [["tires",1],["handling",1],["speed",1],["power",1]]
+const maxPerCars = [["tires",100],["handling",100],["speed",100],["power",100]]
 
 //deploy and set roles
 async function main() {
@@ -25,7 +26,7 @@ async function main() {
     const Toolboxes = await ethers.getContractFactory("Toolboxes");
     const toolboxes =  await (await Toolboxes.deploy(toolboxesUri, toolboxesName, toolboxesSymbol, token.address, random.address, config, price, payees)).deployed();
     const Mods = await ethers.getContractFactory("Mods");
-    const mods =  await (await Mods.deploy( name,symbol,modsURI,toolboxes.address, random.address,nfvs.address, perInputs,attributeConfigs, attributeBruh)).deployed();
+    const mods =  await (await Mods.deploy( name,symbol,modsURI,toolboxes.address, random.address,nfvs.address, maxPerCars,attributeList, configs, valuePerToolboxes)).deployed();
     await (await token.grantRole(await token.TOKEN_MAESTRO_ROLE(), toolboxes.address)).wait()
     await (await (await ethers.getContractAt("AccessControl",random.address)).grantRole(await random.CONSUMER_ROLE(), toolboxes.address)).wait()
     await (await (await ethers.getContractAt("AccessControl",random.address)).grantRole(await random.CONSUMER_ROLE(), mods.address)).wait()

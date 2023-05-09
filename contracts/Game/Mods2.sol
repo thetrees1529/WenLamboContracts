@@ -37,19 +37,24 @@ contract Mods is Nft, RandomConsumer {
         address from;
     }
 
-    struct ToolboxConfig {
-        uint value;
+    struct MaxPerCarInput {
+        string name;
         uint maxPerCar;
     }
 
-    struct ToolboxConfigInput {
+    struct ValuePerToolboxInput {
         string name;
-        ToolboxConfig config;
+        uint value;
     }
 
     struct Mod {
         string attributeName;
         uint value;
+    }
+
+    struct ModView {
+        uint tokenId;
+        Mod mod;
     }
 
     struct Create {
@@ -69,7 +74,9 @@ contract Mods is Nft, RandomConsumer {
 
     mapping(uint => mapping(string => uint)) private _attributeValues;
 
-    mapping(string => ToolboxConfig) public toolboxConfigs;
+    mapping(string => uint) public maxPerCar;
+
+    mapping(string => uint) public valuePerToolbox;
 
     mapping(uint => Request) private _requests;
 
@@ -82,26 +89,30 @@ contract Mods is Nft, RandomConsumer {
 
     uint private _nextTokenId;
 
-    constructor(string memory name, string memory symbol, string memory uri, Toolboxes toolboxes_, IRandom random, Nfvs nfvs_, ToolboxConfigInput[] memory toolboxConfigs_, string[] memory attributeList, Config[] memory config) ERC721(name, symbol) Nft(uri) RandomConsumer(random) {
-        _init(toolboxConfigs_, attributeList, config);
+    constructor(string memory name, string memory symbol, string memory uri, Toolboxes toolboxes_, IRandom random, Nfvs nfvs_, MaxPerCarInput[] memory maxPerCars_, string[] memory attributeList, Config[] memory config, ValuePerToolboxInput[] memory valuePerToolboxes) ERC721(name, symbol) Nft(uri) RandomConsumer(random) {
+        _init(maxPerCars_, attributeList, config, valuePerToolboxes);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         toolboxes = toolboxes_;
         nfvs = nfvs_;
     }
 
+    function getAttributeList() external view returns(string[] memory res) {
+        res = _attributeList;
+    }
+
     function getHistoryOf(address user, uint skip, uint count) external view returns(Mod[] memory res) {
-        res = new Mod[](count);
         count = _history[user].length <= skip ? 0 : count > _history[user].length - skip ? _history[user].length - skip : count;
-        for(uint i; i < count; i ++) {
+        res = new Mod[](count);
+        for(uint i = 1; i <= count; i ++) {
             res[i] = mods[_history[user][_history[user].length - i - skip]];
         }
     }
 
-    function getAllModsOf(address user) external view returns(Mod[] memory res) {
+    function getAllModsOf(address user) external view returns(ModView[] memory res) {
         uint[] memory tokenIds = new uint[](balanceOf(user));
-        res = new Mod[](tokenIds.length);
+        res = new ModView[](tokenIds.length);
         for(uint i; i < tokenIds.length; i ++) {
-            res[i] = mods[tokenOfOwnerByIndex(user, i)];
+            res[i] = ModView({tokenId: tokenOfOwnerByIndex(user, i), mod: mods[tokenOfOwnerByIndex(user, i)]});
         }
     }
 
@@ -121,15 +132,16 @@ contract Mods is Nft, RandomConsumer {
         }
     }
 
-    function init(ToolboxConfigInput[] memory toolboxConfigs_, string[] memory attributeList, Config[] memory config) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _init(toolboxConfigs_, attributeList, config);
+    function init(MaxPerCarInput[] memory maxPerCars_, string[] memory attributeList, Config[] memory config, ValuePerToolboxInput[] memory valuePerToolboxes) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _init(maxPerCars_, attributeList, config, valuePerToolboxes);
     }
 
     function burnToolboxesForMods(uint[] calldata toolboxes_) external {
         for(uint i; i < toolboxes_.length; i ++) {
             uint toolboxId = toolboxes_[i];
             require(msg.sender.isOwnerOf(IERC721(address(toolboxes)), toolboxId));
-            _requests[_requestRandom(_options)] = Request({value: toolboxConfigs[toolboxes.toolboxes(toolboxId)].value, from: msg.sender});
+            toolboxes.burn(toolboxId);
+            _requests[_requestRandom(_options)] = Request({value: valuePerToolbox[toolboxes.toolboxes(toolboxId)], from: msg.sender});
         }
     }
 
@@ -143,10 +155,10 @@ contract Mods is Nft, RandomConsumer {
         for(uint i; i < mods_.length; i ++) {
             Mod memory mod = mods[mods_[i].modId];
             require(msg.sender.isOwnerOf(IERC721(address(this)), mods_[i].modId));
-            _attributeValues[mods_[i].nfvId][mod.attributeName] += mod.value;
+            _burn(mods_[i].modId);
             uint current = _attributeValues[mods_[i].nfvId][mod.attributeName];
             uint theoretical = current + mod.value;
-            _attributeValues[mods_[i].nfvId][mod.attributeName] = theoretical >= toolboxConfigs[mod.attributeName].maxPerCar ? toolboxConfigs[mod.attributeName].maxPerCar : theoretical;
+            _attributeValues[mods_[i].nfvId][mod.attributeName] = theoretical >= maxPerCar[mod.attributeName] ? maxPerCar[mod.attributeName] : theoretical;
         }
     }
 
@@ -165,9 +177,12 @@ contract Mods is Nft, RandomConsumer {
         _mint(create.to, tokenId);
     }
 
-    function _init(ToolboxConfigInput[] memory toolboxConfigs_, string[] memory attributeList, Config[] memory config) private {
-        for(uint i; i < toolboxConfigs_.length; i ++) {
-            toolboxConfigs[toolboxConfigs_[i].name] = toolboxConfigs_[i].config;
+    function _init(MaxPerCarInput[] memory maxPerCars_, string[] memory attributeList, Config[] memory config, ValuePerToolboxInput[] memory valuePerToolboxes) private {
+        for(uint i; i < maxPerCars_.length; i ++) {
+            maxPerCar[maxPerCars_[i].name] = maxPerCars_[i].maxPerCar;
+        }
+        for(uint i; i < valuePerToolboxes.length; i ++) {
+            valuePerToolbox[valuePerToolboxes[i].name] = valuePerToolboxes[i].value;
         }
         _attributeList = attributeList;
         delete _config;
