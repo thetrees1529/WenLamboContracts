@@ -5,15 +5,15 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        // settings: {
-        //   viaIR: true,
-        //   optimizer: {
-        //     enabled: true,
-        //     runs: 200
-        //   }
-        // },
+        settings: {
+          // viaIR: true,
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        },
 
-        version: "0.8.17"
+        version: "0.8.19"
       },
       {
         version: "0.8.15"

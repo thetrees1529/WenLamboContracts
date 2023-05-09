@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "../Game/Earn.sol";
 
-contract ClaimSlash is AccessControl {
+contract LockedBoost is AccessControl {
 
     bytes32 public SLASH_ROLE = keccak256("SLASH_ROLE");
 
@@ -26,8 +26,10 @@ contract ClaimSlash is AccessControl {
         for(uint i = checkPoint; i < end; i ++) {
             uint tokenId = i;
             (,,,uint pendingClaim,,,,,,) = target.nfvInfo(tokenId);
-            uint toSlash = (pendingClaim * numerator) / denominator;
-            target.removeFromClaimable(tokenId, toSlash);      
+                uint toAdd = (pendingClaim * denominator) / numerator;
+                target.addToLocked(tokenId, toAdd);    
+            
+
         }
         checkPoint += numberOf;
     }

@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicensed
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 import "./IGasLeech.sol";
 contract GasLeecher {
     IGasLeech public gasLeech;

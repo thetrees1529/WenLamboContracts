@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicensed
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "./IERC20TokenReceiver.sol";
 abstract contract ERC20TokenReceiver is IERC20TokenReceiver, ERC165 {

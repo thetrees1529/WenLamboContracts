@@ -1,12 +1,12 @@
-// // SPDX-License-Identifier: MIT
-// pragma solidity 0.8.17;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.19;
 
 // import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
 // import "@thetrees1529/solutils/contracts/gamefi/RandomConsumer.sol";
 // import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-// // import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-// // import "@openzeppelin/contracts/token/ERC1155/presets/ERC1155PresetMinterPauser.sol";
-// // import "../Dependencies/ERC721EnumerableWithoutApprovalForAll.sol";
+// import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+// import "@openzeppelin/contracts/token/ERC1155/presets/ERC1155PresetMinterPauser.sol";
+// import "../Dependencies/ERC721EnumerableWithoutApprovalForAll.sol";
 
 // contract Toolboxes is ERC1155PresetMinterPauser, RandomConsumer, ERC721Enumerable2, ReentrancyGuard {
 

@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";

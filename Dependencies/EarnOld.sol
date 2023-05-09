@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -9,13 +9,13 @@ import "@thetrees1529/solutils/contracts/payments/Fees.sol";
 import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
 import "../Token/Token.sol";
 
-contract Earn is AccessControl {
+contract EarnOld is AccessControl {
+    using OwnerOf for address;
 
     uint constant public EARN_SPEED_CONVERSION = 11574074074074;
 
     using Fees for uint;
     using ERC20Payments for IERC20;
-    using OwnerOf for address;
 
     struct Payment {
         IERC20 token;
@@ -53,8 +53,6 @@ contract Earn is AccessControl {
 
     struct NfvView {
         uint claimable;
-        uint unlockedClaimable;
-        uint lockedClaimable;
         uint interestable;
         uint locked;
         uint unlockable;
@@ -71,8 +69,6 @@ contract Earn is AccessControl {
     function getInformation(uint tokenId) external view minted(tokenId) returns(NfvView memory nfv) {
         return NfvView({
             claimable: getClaimable(tokenId),
-            unlockedClaimable: getUnlockedClaimable(tokenId),
-            lockedClaimable: getPendingLocked(tokenId),
             locked: getLocked(tokenId),
             unlockable: getUnlockable(tokenId),
             interestable: getInterest(tokenId),
@@ -80,12 +76,10 @@ contract Earn is AccessControl {
             location: nfvInfo[tokenId].location,
             nfv: nfvInfo[tokenId]
         });
-        return NfvView(0,0,0,0,0,0,false,Location(0,0),nfvInfo[tokenId]);
     }
 
     bytes32 public EARN_ROLE = keccak256("EARN_ROLE"); 
 
-    bool private _initialised;
     uint public genesis;
     uint public unlockStart;
     uint public unlockEnd;
@@ -106,7 +100,20 @@ contract Earn is AccessControl {
     constructor(IERC721 nfvs_, Token token_, Stage[] memory stages, Fees.Fee memory lockRatio_, Fees.Fee memory burnRatio_, Fees.Fee memory interest_, uint unlockStart_, uint unlockEnd_, uint baseEarn_, uint mintCap_) {
         token = token_;
         nfvs = nfvs_;
-        _setStages(stages);
+        for(uint i; i < stages.length; i ++) {
+            Stage memory stage = stages[i];
+            Stage storage _stage = _stages.push();
+            _stage.name = stage.name;
+            for(uint j; j < stage.substages.length; j ++) {
+                Substage memory substage = stage.substages[j];
+                Substage storage _substage = _stage.substages.push();
+                _substage.name = substage.name;
+                _substage.emission = substage.emission;
+                for(uint k; k < substage.payments.length; k ++) {
+                    _substage.payments.push(substage.payments[k]);
+                }
+            }
+        }
         lockRatio = lockRatio_;
         burnRatio = burnRatio_;
         interest = interest_;
@@ -116,11 +123,6 @@ contract Earn is AccessControl {
         baseEarn = baseEarn_;
         mintCap = mintCap_;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
-
-    // Avoid changing emissions because all pending amounts will backtrack to the new value. 
-    function setStages(Stage[] calldata stages) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _setStages(stages);
     }
 
     function setPayees(ERC20Payments.Payee[] calldata payees) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -264,7 +266,7 @@ contract Earn is AccessControl {
         nfv.locked += change;
     }
     
-    function removeFromLocked(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
+    function removeFromToLocked(uint tokenId, uint change) external onlyRole(EARN_ROLE) {
         require(!_unlockStarted(), "Unlock already started.");
         _claim(tokenId);
         Nfv storage nfv = nfvInfo[tokenId];
@@ -309,31 +311,6 @@ contract Earn is AccessControl {
         if(nfv.onStages) {
             nfv.onStages = false;
             delete nfv.location;
-        }
-    }
-
-    function _setStages(Stage[] memory stages) private {
-        if(_initialised){
-            require(stages.length == _stages.length);
-            for(uint i; i < stages.length; i ++) {
-                require(stages[i].substages.length == _stages[i].substages.length);
-            }
-            delete _stages;
-            _initialised = true;
-        }
-        for(uint i; i < stages.length; i ++) {
-            Stage memory stage = stages[i];
-            Stage storage _stage = _stages.push();
-            _stage.name = stage.name;
-            for(uint j; j < stage.substages.length; j ++) {
-                Substage memory substage = stage.substages[j];
-                Substage storage _substage = _stage.substages.push();
-                _substage.name = substage.name;
-                _substage.emission = substage.emission;
-                for(uint k; k < substage.payments.length; k ++) {
-                    _substage.payments.push(substage.payments[k]);
-                }
-            }
         }
     }
 

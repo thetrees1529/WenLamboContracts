@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicensed
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 import "../utils/IERC20TokenReceiver.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";

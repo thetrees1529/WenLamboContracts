@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
@@ -42,6 +42,7 @@ contract Toolboxes is RandomConsumer, AccessControl, Nft {
     mapping(uint => string) public toolboxes;
     mapping(uint => address) private _requests;
     mapping(address => mapping(string => uint)) private _stats;
+    mapping(string => uint) private _globalStats;
 
     constructor(string memory uri, string memory name, string memory symbol, IERC20 token_, IRandom random, Config[] memory config, uint price_, ERC20Payments.Payee[] memory payees) Nft(uri) ERC721(name, symbol) RandomConsumer(random) {
         token = token_;
@@ -68,6 +69,13 @@ contract Toolboxes is RandomConsumer, AccessControl, Nft {
         stats = new Stat[](_config.length);
         for(uint i; i < _config.length; i ++) {
             stats[i] = Stat({toolboxName: _config[i].name, minted: _stats[user][_config[i].name]});
+        }
+    }
+
+    function getGlobalStats() external view returns(Stat[] memory stats) {
+        stats = new Stat[](_config.length);
+        for(uint i; i < _config.length; i ++) {
+            stats[i] = Stat({toolboxName: _config[i].name, minted: _globalStats[_config[i].name]});
         }
     }
 

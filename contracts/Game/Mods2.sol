@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.19;
 
 import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 import "@thetrees1529/solutils/contracts/gamefi/OwnerOf.sol";
