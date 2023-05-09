@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 pragma solidity 0.8.17;
 
 contract Reflections is Ownable {
-    using OwnerOf for IERC721;
+    using OwnerOf for address;
 
     IERC721Enumerable public car;
     uint public constant SPLIT_BETWEEN = 10000;
@@ -100,7 +100,7 @@ contract Reflections is Ownable {
     }
 
     modifier onlyOwnerOf(uint tokenId) {
-        require(IERC721(car).isOwnerOf(msg.sender, tokenId), "Incorrect owner.");
+        require(msg.sender.isOwnerOf(IERC721(car), tokenId), "Incorrect owner.");
         _;
     }
 

@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 pragma solidity 0.8.17;
 
 contract Reflections2 is Ownable {
-    using OwnerOf for IERC721;
+    using OwnerOf for address;
 
     IERC721 public nfvs;
     IERC20 public token;
@@ -30,7 +30,7 @@ contract Reflections2 is Ownable {
     }
 
     function register(uint tokenId) public {
-        require(nfvs.isOwnerOf(msg.sender, tokenId), "You don't own this one.");
+        require(msg.sender.isOwnerOf(nfvs, tokenId), "You don't own this one.");
         update();
         Nfv storage nfv = _nfvs[tokenId];
         nfv.debt = _checkpoint;
@@ -59,7 +59,7 @@ contract Reflections2 is Ownable {
 
     function claim(uint tokenId) public {
         update();
-        require(nfvs.isOwnerOf(msg.sender, tokenId), "You don't own this one.");
+        require(msg.sender.isOwnerOf(nfvs, tokenId), "You don't own this one.");
         uint owed_ = owed(tokenId);
         token.transfer(msg.sender, owed_);
         _lastBalance -= owed_;

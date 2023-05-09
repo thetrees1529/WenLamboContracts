@@ -10,6 +10,7 @@ import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
 import "../Token/Token.sol";
 
 contract EarnOld is AccessControl {
+    using OwnerOf for address;
 
     uint constant public EARN_SPEED_CONVERSION = 11574074074074;
 
@@ -386,7 +387,7 @@ contract EarnOld is AccessControl {
     }
 
     modifier onlyOwnerOf(uint tokenId) {
-        require(OwnerOf.isOwnerOf(nfvs, msg.sender, tokenId), "Does not own NFT.");
+        require(msg.sender.isOwnerOf(nfvs, tokenId), "Does not own NFT.");
         _;
     }
 

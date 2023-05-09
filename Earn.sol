@@ -15,6 +15,7 @@ contract Earn is AccessControl {
 
     using Fees for uint;
     using ERC20Payments for IERC20;
+    using OwnerOf for address;
 
     struct Payment {
         IERC20 token;
@@ -79,6 +80,7 @@ contract Earn is AccessControl {
             location: nfvInfo[tokenId].location,
             nfv: nfvInfo[tokenId]
         });
+        return NfvView(0,0,0,0,0,0,false,Location(0,0),nfvInfo[tokenId]);
     }
 
     bytes32 public EARN_ROLE = keccak256("EARN_ROLE"); 
@@ -408,7 +410,7 @@ contract Earn is AccessControl {
     }
 
     modifier onlyOwnerOf(uint tokenId) {
-        require(OwnerOf.isOwnerOf(nfvs, msg.sender, tokenId), "Does not own NFT.");
+        require(msg.sender.isOwnerOf(nfvs, tokenId), "Does not own NFT.");
         _;
     }
 

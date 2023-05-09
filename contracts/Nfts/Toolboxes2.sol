@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
 import "@thetrees1529/solutils/contracts/gamefi/RandomConsumer.sol";
 
 
-contract Toolboxes is ERC721Enumerable, RandomConsumer, AccessControl {
+contract Toolboxes is RandomConsumer, AccessControl, Nft {
 
     struct Config {
         string name;
@@ -23,6 +23,11 @@ contract Toolboxes is ERC721Enumerable, RandomConsumer, AccessControl {
         string name;
     }
 
+    struct Stat {
+        string toolboxName;
+        uint minted;
+    }
+
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
     IERC20 public token;
@@ -36,18 +41,33 @@ contract Toolboxes is ERC721Enumerable, RandomConsumer, AccessControl {
 
     mapping(uint => string) public toolboxes;
     mapping(uint => address) private _requests;
+    mapping(address => mapping(string => uint)) private _stats;
 
-    constructor(string memory name, string memory symbol, IERC20 token_, IRandom random) ERC721(name, symbol) RandomConsumer(random) {
+    constructor(string memory uri, string memory name, string memory symbol, IERC20 token_, IRandom random, Config[] memory config, uint price_, ERC20Payments.Payee[] memory payees) Nft(uri) ERC721(name, symbol) RandomConsumer(random) {
         token = token_;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setConfig(config);
+        _setPrice(price_);
+        _setPayees(payees);
     }
 
     function setConfig(Config[] calldata config) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setConfig(config);
+    }
+
+    function _setConfig(Config[] memory config) private {
         delete _config;
         delete _options;
         for(uint i; i < config.length; i ++) {
             _config.push(config[i]);
             _options.push(config[i].weighting);
+        }
+    }
+
+    function getStatsOf(address user) external view returns(Stat[] memory stats) {
+        stats = new Stat[](_config.length);
+        for(uint i; i < _config.length; i ++) {
+            stats[i] = Stat({toolboxName: _config[i].name, minted: _stats[user][_config[i].name]});
         }
     }
 
@@ -61,10 +81,17 @@ contract Toolboxes is ERC721Enumerable, RandomConsumer, AccessControl {
     }
 
     function setPrice(uint newPrice) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setPrice(newPrice);
+    }
+
+    function _setPrice(uint newPrice) private {
         price = newPrice;
     }
 
     function setPayees(ERC20Payments.Payee[] memory payees) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setPayees(payees);
+    }
+    function _setPayees(ERC20Payments.Payee[] memory payees) private {
         delete _payees;
         for(uint i; i < payees.length; i ++) _payees.push(payees[i]);
     }
@@ -79,6 +106,7 @@ contract Toolboxes is ERC721Enumerable, RandomConsumer, AccessControl {
     }
 
     function _fulfillRandom(uint requestId, uint result) internal override {
+        _stats[_requests[requestId]][_config[result].name] ++;
         _create(Create({to: _requests[requestId], name: _config[result].name}));
     }
 
@@ -89,7 +117,7 @@ contract Toolboxes is ERC721Enumerable, RandomConsumer, AccessControl {
         toolboxes[tokenId] = input.name;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable, AccessControl) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(Nft, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
