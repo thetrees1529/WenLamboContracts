@@ -115,6 +115,7 @@ contract Toolboxes is RandomConsumer, AccessControl, Nft {
 
     function _fulfillRandom(uint requestId, uint result) internal override {
         _stats[_requests[requestId]][_config[result].name] ++;
+        _globalStats[_config[result].name] ++;
         _create(Create({to: _requests[requestId], name: _config[result].name}));
     }
 

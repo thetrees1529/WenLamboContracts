@@ -1,12 +1,12 @@
+const fs = require("fs");
 require("@nomicfoundation/hardhat-toolbox");
-const fs = require("fs")
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
     compilers: [
       {
         settings: {
-          // viaIR: true,
+          viaIR: true,
           optimizer: {
             enabled: true,
             runs: 200
