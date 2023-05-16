@@ -67,6 +67,20 @@ contract Mods is Nft, RandomConsumer {
         uint nfvId;
     }
 
+    struct ManualIncrease {
+        uint tokenId;
+        string attributeName;
+        uint value;
+    }
+
+    struct ManualDecrease {
+        uint tokenId;
+        string attributeName;
+        uint value;
+    }
+
+    bytes32 public constant MODS_ROLE = keccak256("MODS_ROLE");
+
     Toolboxes public toolboxes;
     Nfvs public nfvs;
 
@@ -94,6 +108,18 @@ contract Mods is Nft, RandomConsumer {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         toolboxes = toolboxes_;
         nfvs = nfvs_;
+    }
+
+    function manualIncrease(ManualIncrease[] calldata increases) external onlyRole(MODS_ROLE) {
+        for(uint i; i < increases.length; i ++) {
+            _attributeValues[increases[i].tokenId][increases[i].attributeName] += increases[i].value;
+        }
+    }
+
+    function manualDecrease(ManualDecrease[] calldata decreases) external onlyRole(MODS_ROLE) {
+        for(uint i; i < decreases.length; i ++) {
+            _attributeValues[decreases[i].tokenId][decreases[i].attributeName] -= decreases[i].value;
+        }
     }
 
     function getAttributeList() external view returns(string[] memory res) {
