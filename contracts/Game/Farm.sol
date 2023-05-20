@@ -43,6 +43,10 @@ contract Farm is Ownable {
         _setFarmWatcher(farmWatcher_);
     }
 
+    function getApy() external view returns(uint) {
+
+    }
+
     function claimableOf(address addr) public view returns(uint) {
         return _claimableOf(_accounts[addr]);
     }
