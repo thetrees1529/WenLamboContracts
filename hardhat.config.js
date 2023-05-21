@@ -3,16 +3,51 @@ require("@nomicfoundation/hardhat-toolbox");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
-    compilers: [
-      {
+
+    overrides: {
+      "contracts/Legacy/Lambo.sol": {
         settings: {
           viaIR: true,
           optimizer: {
             enabled: true,
-            runs: 200
+            runs: 1
           }
         },
-
+        version: "0.8.19"
+      },
+      "contracts/Migrating/ModsMigration.sol": {
+        settings: {
+          viaIR: true,
+          optimizer: {
+            enabled: true,
+            runs: 1
+          }
+        },
+        version: "0.8.19"
+      },
+      "contracts/Game/Mods2.sol": {
+        settings: {
+          viaIR: true,
+          optimizer: {
+            enabled: true,
+            runs: 1
+          }
+        },
+        version: "0.8.19"
+      },
+      "contracts/Nfts/Toolboxes2.sol": {
+        settings: {
+          viaIR: true,
+          optimizer: {
+            enabled: true,
+            runs: 1
+          }
+        },
+        version: "0.8.19"
+      }
+    },
+    compilers: [
+      {
         version: "0.8.19"
       },
       {
