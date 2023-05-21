@@ -9,8 +9,6 @@ const batchSize = 500
 
 async function main() {
     const mods = await ethers.getContractAt("Mods", contractAddress)
-    const role = await mods.MODS_ROLE()
-    await(await mods.grantRole(role, (await ethers.getSigners())[0].getAddress())).wait()
     for(let i = startAt; i < stats.length; i += batchSize) {
         console.log(`doing batch ${i} to ${Math.min(i + batchSize, stats.length)}`)
         const batch = stats.slice(i, i + batchSize)
