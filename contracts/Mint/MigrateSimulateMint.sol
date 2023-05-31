@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import "@thetrees1529/solutils/contracts/payments/Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Mint.sol";
-import "../Game/Earn.sol";
+import "../Rewards/Earn.sol";
 
 contract MigrateSimulateMint is Mint {
     using Fees for uint;

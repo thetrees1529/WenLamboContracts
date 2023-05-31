@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "../Game/Earn.sol";
+import "../Rewards/Earn.sol";
 
 contract GarageMigrator is AccessControl {
 

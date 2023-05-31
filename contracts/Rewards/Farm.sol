@@ -3,6 +3,11 @@ pragma solidity 0.8.19;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../Rewards/Vault.sol";
 import "./extensions/IFarmWatcher.sol";
+interface IPair {
+    function token0() external view returns (address);
+    function token1() external view returns (address);
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+}
 
 contract Farm is Ownable {
 
@@ -14,6 +19,7 @@ contract Farm is Ownable {
 
     uint private constant SHARE = 1e9;
 
+    address public WAVAX;
     IERC20 public depositToken;
     IERC20 public rewardToken;
     Vault public vault;
@@ -42,11 +48,6 @@ contract Farm is Ownable {
         _setStartDate(startDate_);
         _setFarmWatcher(farmWatcher_);
     }
-
-    function getApy() external view returns(uint) {
-
-    }
-
     function claimableOf(address addr) public view returns(uint) {
         return _claimableOf(_accounts[addr]);
     }
@@ -128,7 +129,7 @@ contract Farm is Ownable {
         _debt += toClaim;
         vault.withdraw(rewardToken, from, toClaim);
 
-        if(address(farmWatcher) != address(0)) farmWatcher.claimed(from, toClaim);
+        if(address(farmWatcher) != address(0)) farmWatcher.claimed(from, depositedOf(from), toClaim);
     }
 
     function _deposit(address from, uint amount) private {
@@ -145,7 +146,7 @@ contract Farm is Ownable {
         _debt += debt;
         depositToken.transferFrom(from, address(this), amount);
 
-        if(address(farmWatcher) != address(0)) farmWatcher.deposited(from, amount);
+        if(address(farmWatcher) != address(0)) farmWatcher.deposited(from, depositedOf(from), amount);
     }
 
     function _withdraw(address from, uint amount) private {
@@ -162,7 +163,7 @@ contract Farm is Ownable {
         _owed += owed;
         depositToken.transfer(from, amount);
 
-        if(address(farmWatcher) != address(0)) farmWatcher.withdrawn(from, amount);
+        if(address(farmWatcher) != address(0)) farmWatcher.withdrawn(from, depositedOf(from), amount);
     }
 
     function _claimableOf(Account storage account) private view returns(uint) {
