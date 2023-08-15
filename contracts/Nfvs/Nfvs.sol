@@ -9,17 +9,11 @@ contract Nfvs is NfvBase {
 
     using Counters for Counters.Counter;
 
-    bytes32 public MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 constant public MAX_LAMBOS = 10000;
     Counters.Counter private tokenIdCounter;
 
-    constructor(string memory name, string memory symbol, string memory uri) ERC721(name,symbol) Nft( uri) {
+    constructor(string memory uri, string memory name, string memory symbol) Nft(uri, name, symbol) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
-
-    //mintTo preferred but oh well
-    function mint(address to, uint numberOf) external onlyRole(MINTER_ROLE) {
-        for(uint i; i < numberOf; i++) _mintOne(to);
     }
 
     function _mintOne(address to) private {

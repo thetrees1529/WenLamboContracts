@@ -28,7 +28,6 @@ contract Toolboxes is RandomConsumer, AccessControl, Nft {
         uint minted;
     }
 
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
     IERC20 public token;
 
@@ -44,7 +43,7 @@ contract Toolboxes is RandomConsumer, AccessControl, Nft {
     mapping(address => mapping(string => uint)) private _stats;
     mapping(string => uint) private _globalStats;
 
-    constructor(string memory uri, string memory name, string memory symbol, IERC20 token_, IRandom random, Config[] memory config, uint price_, ERC20Payments.Payee[] memory payees) Nft(uri) ERC721(name, symbol) RandomConsumer(random) {
+    constructor(string memory uri, string memory name, string memory symbol, IERC20 token_, IRandom random, Config[] memory config, uint price_, ERC20Payments.Payee[] memory payees) Nft(uri,name, symbol)RandomConsumer(random) {
         token = token_;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setConfig(config);
@@ -82,10 +81,6 @@ contract Toolboxes is RandomConsumer, AccessControl, Nft {
     function getToolboxesOf(address user) external view returns(Toolbox[] memory res) {
         res = new Toolbox[](balanceOf(user));
         for(uint i; i < balanceOf(user); i++) res[i] = Toolbox({tokenId: tokenOfOwnerByIndex(user, i), name: toolboxes[tokenOfOwnerByIndex(user, i)]});
-    }
-
-    function burn(uint tokenId) external onlyRole(BURNER_ROLE) {
-        _burn(tokenId);
     }
 
     function setPrice(uint newPrice) external onlyRole(DEFAULT_ADMIN_ROLE) {

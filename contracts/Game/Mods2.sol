@@ -103,7 +103,7 @@ contract Mods is Nft, RandomConsumer {
 
     uint private _nextTokenId;
 
-    constructor(string memory name, string memory symbol, string memory uri, Toolboxes toolboxes_, IRandom random, Nfvs nfvs_, MaxPerCarInput[] memory maxPerCars_, string[] memory attributeList, Config[] memory config, ValuePerToolboxInput[] memory valuePerToolboxes) ERC721(name, symbol) Nft(uri) RandomConsumer(random) {
+    constructor(string memory name, string memory symbol, string memory uri, Toolboxes toolboxes_, IRandom random, Nfvs nfvs_, MaxPerCarInput[] memory maxPerCars_, string[] memory attributeList, Config[] memory config, ValuePerToolboxInput[] memory valuePerToolboxes) Nft(uri,name, symbol) RandomConsumer(random) {
         _init(maxPerCars_, attributeList, config, valuePerToolboxes);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         toolboxes = toolboxes_;

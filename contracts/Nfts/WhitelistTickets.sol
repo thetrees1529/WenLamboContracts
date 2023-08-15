@@ -6,9 +6,7 @@ import { Counters } from "@openzeppelin/contracts/utils/Counters.sol";
 
 contract WhitelistTickets is Nft {
     using Counters for Counters.Counter;
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    constructor(string memory name, string memory symbol, string memory baseURI) ERC721(name, symbol) Nft( baseURI){
+    constructor(string memory name, string memory symbol, string memory baseURI) Nft( baseURI, name, symbol){
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
         _grantRole(BURNER_ROLE, msg.sender);
@@ -18,9 +16,6 @@ contract WhitelistTickets is Nft {
     // }
     Counters.Counter private _nextTokenId;
 
-    function mint(address account, uint numberOf) external {
-        for(uint i; i < numberOf; i ++) mintOne(account);
-    }
     function burn(address from, uint numberOf) external {
         for(uint i; i < numberOf; i ++) burnOne(from);
     }

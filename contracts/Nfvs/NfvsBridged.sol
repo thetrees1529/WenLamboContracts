@@ -6,7 +6,7 @@ import "./NfvBase.sol";
 
 contract NfvsBridged is BridgedNft, NfvBase {
 
-    constructor(string memory name, string memory symbol, string memory uri) BridgedNft(name, symbol, uri) {
+    constructor(string memory name, string memory symbol, string memory uri) BridgedNft(uri,name, symbol) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 

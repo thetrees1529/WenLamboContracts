@@ -7,10 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 contract BridgedNft is Bridgeable, ERC721Enumerable, Nft {
 
-    bytes32 public MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public BURNER_ROLE = keccak256("BURNER_ROLE");
-
-    constructor(string memory name, string memory symbol, string memory uri) ERC721(name, symbol) Nft(uri) {
+    constructor(string memory name, string memory symbol, string memory uri) Nft(uri, name, symbol) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
