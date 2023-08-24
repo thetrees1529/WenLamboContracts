@@ -10,7 +10,8 @@ contract FreeMint {
         nft = Nft(_nft);
     }
 
-    function mint() external {
-        nft.mint(msg.sender, 1);
+    function mint() external returns (uint256 ){
+        uint[] memory tokenIds = nft.mint(msg.sender, 1);
+        return tokenIds[0];
     }
 }
