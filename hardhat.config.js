@@ -1,5 +1,6 @@
 const fs = require("fs");
 require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-verify");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   solidity: {
@@ -68,5 +69,10 @@ module.exports = {
       url: "https://rpc.ankr.com/avalanche",
       accounts: [require("./privateKey.json")]
     }
-  } : undefined
+  } : undefined,
+  etherscan: {
+    apiKey: {
+      avax: ""
+    }
+  } 
 }

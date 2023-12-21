@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "../Nfvs/Nfvs.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@thetrees1529/solutils/contracts/gamefi/OwnerOf.sol";
 import "@thetrees1529/solutils/contracts/payments/Fees.sol";
@@ -97,12 +97,12 @@ contract Earn is AccessControl {
     Fees.Fee public burnRatio;
     Fees.Fee public interest;
     Token public token;
-    IERC721 public nfvs;
+    Nfvs public nfvs;
     ERC20Payments.Payee[] private _payees;
 
     mapping(uint => Nfv) public nfvInfo;
 
-    constructor(IERC721 nfvs_, Token token_, Stage[] memory stages, Fees.Fee memory lockRatio_, Fees.Fee memory burnRatio_, Fees.Fee memory interest_, uint unlockStart_, uint unlockEnd_, uint baseEarn_, uint mintCap_) {
+    constructor(Nfvs nfvs_, Token token_, Stage[] memory stages, Fees.Fee memory lockRatio_, Fees.Fee memory burnRatio_, Fees.Fee memory interest_, uint unlockStart_, uint unlockEnd_, uint baseEarn_, uint mintCap_) {
         token = token_;
         nfvs = nfvs_;
         _setStages(stages);
