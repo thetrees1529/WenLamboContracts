@@ -150,7 +150,7 @@ contract Marketplace is Ownable, ReentrancyGuard {
         require(listing.user != address(0), "Marketplace: listing not found");
         require(block.timestamp < listing.expiry, "Marketplace: listing expired");
 
-        listing.token.transferFrom(msg.sender, listing.user, listing.amount);
+        _transferFunds(listing.token, msg.sender, listing.user, listing.amount);
         listing.col.safeTransferFrom(listing.user, msg.sender, listing.tokenId);
 
         delete _listings[listingId];
