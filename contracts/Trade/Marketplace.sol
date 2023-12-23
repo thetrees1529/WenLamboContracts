@@ -116,7 +116,6 @@ contract Marketplace is Ownable, ReentrancyGuard {
     }
 
     function list(IERC721 col, uint tokenId, IERC20 token, uint amount, uint expiry) public nonReentrant onlyWhitelisted(col) onlyWhitelistedToken(token){
-        require(_allowedTokens[token], "Marketplace: token not whitelisted");
         _onlyOwnerOf(col, tokenId);
         uint listingId = _newId();
         Order storage listing = _listings[listingId] = Order(msg.sender, col, tokenId, token, amount, expiry);
