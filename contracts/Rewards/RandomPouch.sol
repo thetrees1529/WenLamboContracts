@@ -21,7 +21,9 @@ contract RandomPouch {
     constructor(Nft[] memory inputs_, Pouch[] memory pouches_, Vault vault_) {
         _inputs = inputs_;
         vault = vault_;
-        _pouches = pouches_;
+        for(uint i; i < pouches_.length; i++) {
+            _pouches.push(pouches_[i]);
+        }
     }
 
     function pouches() external view returns (Pouch[] memory) {
