@@ -270,9 +270,16 @@ contract Marketplace is Ownable, ReentrancyGuard {
     }
 
     function _transferFunds(IERC20 token, address from, address to, uint amount) private {
-        ERC20Payments.Payee[] memory payees = new ERC20Payments.Payee[](2);
-        payees[0] = ERC20Payments.Payee(feeRecipient, miliFee);
-        payees[1] = ERC20Payments.Payee(to, 1000 - miliFee);
+        ERC20Payments.Payee memory seller = ERC20Payments.Payee(to, 1000 - miliFee);
+        ERC20Payments.Payee[] memory payees;
+        if(feeRecipient == address(0)) {
+            payees = new ERC20Payments.Payee[](1);
+            payees[0] = seller;
+        } else {
+            payees = new ERC20Payments.Payee[](2);
+            payees[0] = ERC20Payments.Payee(feeRecipient, miliFee);
+            payees[1] = seller;
+        }
 
         if(msg.value > 0) {
             if(address(token) == address(WAVAX)) {

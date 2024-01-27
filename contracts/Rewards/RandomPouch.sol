@@ -16,7 +16,6 @@ contract RandomPouch {
     Pouch[] private _pouches;
     Nft[] private _inputs;
     Vault public vault;
-    IERC20 public mcv;
 
     constructor(Nft[] memory inputs_, Pouch[] memory pouches_, Vault vault_) {
         _inputs = inputs_;
