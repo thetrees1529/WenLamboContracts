@@ -15,7 +15,7 @@ async function main() {
         farmWatcher,
         emissionRate,
         startDate
-    )).wait()
+    )).waitForTransaction()
     const farmsData = await farmManager.getFarmsDataFor(hre.ethers.constants.AddressZero)
     console.log("Farm deployed to:", farmsData[farmsData.length - 1].implementation)
 }
