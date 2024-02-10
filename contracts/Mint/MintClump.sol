@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import "@thetrees1529/solutils/contracts/payments/Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../Nfvs/Nfvs.sol";
+import "./Legacy.sol";
 
 contract MintClump is Ownable, Payments { 
 

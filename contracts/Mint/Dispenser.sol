@@ -22,7 +22,7 @@ contract Dispenser is AccessControl {
 
     function _get(IERC721Enumerable nft_, address to, uint amount) private {
         for(uint256 i = 0; i < amount; i++) {
-            nft_.safeTransferFrom(address(this), to, nft.tokenOfOwnerByIndex(address(this), 0));
+            nft_.safeTransferFrom(address(this), to, nft.tokenOfOwnerByIndex(address(this), uint(keccak256(abi.encode(block.number))) % nft.balanceOf(address(this))));
         }
     }
 }
