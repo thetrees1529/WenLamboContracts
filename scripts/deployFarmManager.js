@@ -3,9 +3,9 @@ async function main() {
   const vault = await hre.ethers.getContractAt("Vault", vaultAddress)
   const FarmManager = await hre.ethers.getContractFactory("FarmManager");
   const farmManager = await FarmManager.deploy();
-  await farmManager.deployed();
-  await (await vault.grantRole(await vault.DEFAULT_ADMIN_ROLE(), farmManager.address)).waitForTransaction()
-  console.log("FarmManager deployed to:", farmManager.address);
+  await farmManager.waitForDeployment();
+  await (await vault.grantRole(await vault.DEFAULT_ADMIN_ROLE(), farmManager.target)).wait()
+  console.log("FarmManager deployed to:", farmManager.target);
 }
 
 main()

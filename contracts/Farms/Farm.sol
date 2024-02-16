@@ -26,21 +26,28 @@ contract Farm is Ownable {
 
     uint public emissionRate;
     uint public startDate;
-    uint private _emittingFrom;
-
+    uint public emittable;
+    uint private _lastUpdate;
+    uint private _emittableLeft;
     uint public totalDeposited;
     uint public totalWithdrawn;
     uint public totalClaimed;
 
     mapping(address => Account) private _accounts;
 
-    constructor(IERC20 depositToken_, Vault vault_, IERC20 rewardToken_, IFarmWatcher farmWatcher_, uint emissionRate_, uint startDate_) {
+    constructor(IERC20 depositToken_, Vault vault_, IERC20 rewardToken_, IFarmWatcher farmWatcher_, uint emissionRate_, uint startDate_, uint emittable_) {
         depositToken = depositToken_;
         vault = vault_;
         rewardToken = rewardToken_;
-        emissionRate = emissionRate_;
+        _setEmissionRate(emissionRate_);
         _setStartDate(startDate_);
         _setFarmWatcher(farmWatcher_);
+        _setEmittable(emittable_);
+    }
+
+    function totalEmitted() public view returns(uint) {
+        (uint pendingEmittableLeft,) = _getPendingValues();
+        return emittable - pendingEmittableLeft;
     }
 
     function claimableOf(address addr) public view returns(uint) {
@@ -52,7 +59,7 @@ contract Farm is Ownable {
     }
 
     function globalClaimable() external view returns(uint) {
-        return (_pendingPerShare() * _shareCount) + _owed - _debt;
+        return _getPendingClaimable(_shareCount, _owed, _debt);
     }
 
     function currentlyDeposited() external view returns(uint) {
@@ -89,17 +96,15 @@ contract Farm is Ownable {
     }
 
     function setEmissionRate(uint newEmissionRate) external onlyOwner {
-        _update();
-        emissionRate = newEmissionRate;
+        _setEmissionRate(newEmissionRate);
     }
 
     function setFarmWatcher(IFarmWatcher newFarmWatcher) external onlyOwner {
         _setFarmWatcher(newFarmWatcher);
     }
 
-    function _pendingPerShare() private view returns(uint) {
-        if(_isBeforeStartDate() || _shareCount == 0) return 0;
-        return _perShare + (((block.timestamp - _emittingFrom) * emissionRate) / _shareCount);
+    function setEmittable(uint amount) external onlyOwner {
+        _setEmittable(amount);
     }
 
     function _setFarmWatcher(IFarmWatcher newFarmWatcher) private {
@@ -112,7 +117,20 @@ contract Farm is Ownable {
 
     function _setStartDate(uint newStartDate) private {
         startDate = newStartDate;
-        _emittingFrom = newStartDate;
+        _lastUpdate = newStartDate;
+    }
+
+    function _setEmissionRate(uint newEmissionRate) private {
+        _update();
+        emissionRate = newEmissionRate;
+    }
+
+    function _setEmittable(uint amount) private {
+        _update();
+        uint totalEmitted_ = emittable - _emittableLeft;
+        require(amount >= totalEmitted_);
+        emittable = amount;
+        _emittableLeft = emittable - totalEmitted_;
     }
 
     function _claim(address from) private {
@@ -162,13 +180,33 @@ contract Farm is Ownable {
     }
 
     function _claimableOf(Account storage account) private view returns(uint) {
-        return (account.shares * _pendingPerShare()) + account.owed - account.debt;
+        return _getPendingClaimable(account.shares, account.owed, account.debt);
     }
 
+
+    function _getPendingClaimable(uint shares, uint owed, uint debt) private view returns(uint) {
+        (,uint pendingPerShare) = _getPendingValues();
+        return (shares * pendingPerShare) + owed - debt;
+    }
+
+    function _getPendingValues() private view returns(uint pendingEmittableLeft,  uint pendingPerShare) {
+        if(!_isBeforeStartDate() && _shareCount > 0) {
+            uint potentiallyEmitted = (((block.timestamp - _lastUpdate) * emissionRate) / _shareCount);
+            uint pendingEmitted = potentiallyEmitted > _emittableLeft ? _emittableLeft : potentiallyEmitted;
+            pendingEmittableLeft = _emittableLeft - pendingEmitted;
+            pendingPerShare = _perShare + pendingEmitted / _shareCount;
+        } else {
+            pendingEmittableLeft = _emittableLeft;
+            pendingPerShare = _perShare;
+        }
+    }
+
+
     function _update() private {
-        uint pendingPerShare = _pendingPerShare();
-        if(pendingPerShare != _perShare) _perShare = pendingPerShare;
-        _emittingFrom = block.timestamp;
+        (uint pendingEmittableLeft,uint pendingPerShare) = _getPendingValues();
+        _perShare = pendingPerShare;
+        _emittableLeft = pendingEmittableLeft;
+        _lastUpdate = block.timestamp;
     }
 
 }

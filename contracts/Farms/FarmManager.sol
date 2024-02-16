@@ -24,6 +24,8 @@ contract FarmManager is Ownable {
         IFarmWatcher farmWatcher;
         uint emissionRate;
         uint startDate;
+        uint emittable;
+        uint totalEmitted;
         uint totalDeposited;
         uint totalWithdrawn;
         uint totalClaimed;
@@ -47,6 +49,8 @@ contract FarmManager is Ownable {
                 farmWatcher: _farms[i].farmWatcher(),
                 emissionRate: _farms[i].emissionRate(),
                 startDate: _farms[i].startDate(),
+                emittable: _farms[i].emittable(),
+                totalEmitted: _farms[i].totalEmitted(),
                 totalDeposited: _farms[i].totalDeposited(),
                 totalWithdrawn: _farms[i].totalWithdrawn(),
                 totalClaimed: _farms[i].totalClaimed(),
@@ -91,8 +95,8 @@ contract FarmManager is Ownable {
         }
     }
 
-    function createFarm(IERC20 depositToken, Vault vault, IERC20 rewardToken, IFarmWatcher farmWatcher, uint emissionRate, uint startDate) external onlyOwner {
-        Farm farm = new Farm(depositToken, vault, rewardToken, farmWatcher, emissionRate, startDate);
+    function createFarm(IERC20 depositToken, Vault vault, IERC20 rewardToken, IFarmWatcher farmWatcher, uint emissionRate, uint startDate, uint emittable) external onlyOwner {
+        Farm farm = new Farm(depositToken, vault, rewardToken, farmWatcher, emissionRate, startDate, emittable);
         _farms.push(farm);
         vault.grantRole(vault.VAULT_ROLE(), address(farm));
     }
@@ -118,5 +122,9 @@ contract FarmManager is Ownable {
 
     function setFarmWatcher(uint i, IFarmWatcher newFarmWatcher) external onlyOwner {
         _farms[i].setFarmWatcher(newFarmWatcher);
+    }
+
+    function setFarmEmittable(uint i, uint newEmittable) external onlyOwner {
+        _farms[i].setEmittable(newEmittable);
     }
 }
