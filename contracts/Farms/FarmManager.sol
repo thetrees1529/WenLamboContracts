@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Unlicensed
 pragma solidity 0.8.19;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./Farm.sol";
 import "../Token/Token.sol";
 
@@ -16,10 +17,16 @@ contract FarmManager is Ownable {
         uint amount;
     }
 
+    struct TokenInfo {
+        IERC20 implementation;
+        string name;
+        string symbol;
+    }
+
     struct FarmData {
         Farm implementation;
-        IERC20 depositToken;
-        IERC20 rewardToken;
+        TokenInfo depositToken;
+        TokenInfo rewardToken;
         Vault vault;
         IFarmWatcher farmWatcher;
         uint emissionRate;
@@ -43,8 +50,8 @@ contract FarmManager is Ownable {
         for(uint i = 0; i < _farms.length; i++) {
             farmsData[i] = FarmData({
                 implementation: _farms[i],
-                depositToken: _farms[i].depositToken(),
-                rewardToken: _farms[i].rewardToken(),
+                depositToken: TokenInfo(_farms[i].depositToken(), ERC20(address(_farms[i].depositToken())).name(), ERC20(address(_farms[i].depositToken())).symbol()),
+                rewardToken: TokenInfo(_farms[i].rewardToken(), ERC20(address(_farms[i].rewardToken())).name(), ERC20(address(_farms[i].rewardToken())).symbol()),
                 vault: _farms[i].vault(),
                 farmWatcher: _farms[i].farmWatcher(),
                 emissionRate: _farms[i].emissionRate(),
