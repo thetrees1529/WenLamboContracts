@@ -40,7 +40,7 @@ contract Farm is Ownable {
         vault = vault_;
         rewardToken = rewardToken_;
         _setEmissionRate(emissionRate_);
-        _setStartDate(startDate_);
+        _setStartDate(startDate_ != 0 ? startDate_ : block.timestamp);
         _setFarmWatcher(farmWatcher_);
         _setEmittable(emittable_);
     }
@@ -91,7 +91,6 @@ contract Farm is Ownable {
     }
 
     function setStartDate(uint newStartDate) external onlyOwner {
-        require(_isBeforeStartDate(), "Already started.");
         _setStartDate(newStartDate);
     }
 
@@ -116,6 +115,8 @@ contract Farm is Ownable {
     }
 
     function _setStartDate(uint newStartDate) private {
+        require(newStartDate >= block.timestamp, "Start date must be in the future.");
+        if(startDate != 0) require(_isBeforeStartDate(), "Already started.");
         startDate = newStartDate;
     }
 
