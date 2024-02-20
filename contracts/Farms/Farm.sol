@@ -191,7 +191,7 @@ contract Farm is Ownable {
     function _getPendingValues() private view returns(uint pendingEmittableLeft,  uint pendingPerShare) {
         if(!_isBeforeStartDate() && _shareCount > 0) {
             uint emittingFrom = _lastUpdate > startDate ? _lastUpdate : startDate;
-            uint potentiallyEmitted = (((block.timestamp - emittingFrom) * emissionRate) / _shareCount);
+            uint potentiallyEmitted = ((block.timestamp - emittingFrom) * emissionRate);
             uint pendingEmitted = potentiallyEmitted > _emittableLeft ? _emittableLeft : potentiallyEmitted;
             pendingEmittableLeft = _emittableLeft - pendingEmitted;
             pendingPerShare = _perShare + pendingEmitted / _shareCount;
