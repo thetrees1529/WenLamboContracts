@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import "@thetrees1529/solutils/contracts/payments/Payments.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../Nfvs/Nfvs.sol";
+import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 
 contract Mint is Ownable, Payments { 
 
@@ -14,8 +14,8 @@ contract Mint is Ownable, Payments {
     uint public totalMinted;
     //maximum number of nfvs minted through this contract
     uint public maxMinted;
-    Nfvs internal _nfvs;
-    constructor(Nfvs nfvs, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) {
+    Nft internal _nfvs;
+    constructor(Nft nfvs, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) {
         _setPayees(payees);
         _nfvs = nfvs;
         mintPrice = mintPrice_;
