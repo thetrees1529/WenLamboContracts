@@ -1,8 +1,8 @@
 {
-  "name": "lambo",
+  "name": "contracts",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.",
+  "main": "hardhat.config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,11 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nomicfoundation/ethereumjs-util": "^9.0.3",
-    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
-    "@openzeppelin/contracts": "^4.9.3",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^4.9.6",
     "@sushiswap/sushiswap": "^0.1.1",
     "@thetrees1529/solutils": "github:thetrees1529/solutils",
-    "hardhat": "^2.19.4"
+    "hardhat": "^2.22"
   }
 }

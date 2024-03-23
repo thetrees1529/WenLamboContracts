@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./Plates.sol";
 
 contract PlateMetadata is AccessControl {
 
@@ -22,15 +23,19 @@ contract PlateMetadata is AccessControl {
     mapping(uint => mapping(string => string)) private _metadata;
     string[] private _keys;
 
-    constructor() {
+    Plates public plates;
+
+    constructor(Plates plates_) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        plates = plates_;
     }
 
     function getKeys() external view returns (string[] memory) {
         return _keys;
     }
 
-    function getMetadataOf(uint id) public view returns (KeyValuePair[] memory metadata) {
+    function getMetadataOf(uint id) public view exists(id) returns (KeyValuePair[] memory metadata) {
+
         metadata = new KeyValuePair[](_keys.length);
         for (uint i = 0; i < _keys.length; i++) {
             metadata[i] = KeyValuePair(_keys[i], _metadata[id][_keys[i]]);
@@ -55,7 +60,7 @@ contract PlateMetadata is AccessControl {
         }
     }
 
-    function setAttribute(SetAttributeStruct memory setAttributeStruct) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setAttribute(SetAttributeStruct memory setAttributeStruct) public onlyRole(DEFAULT_ADMIN_ROLE) exists(setAttributeStruct.id) {
         _metadata[setAttributeStruct.id][setAttributeStruct.keyValuePair.key] = setAttributeStruct.keyValuePair.value;
         bool found = false;
         for (uint i; i < _keys.length; i++) {
@@ -77,6 +82,12 @@ contract PlateMetadata is AccessControl {
         }
     }
 
-
+    modifier exists(uint id) {
+        try plates.ownerOf(id) returns (address) {
+            _;
+        } catch {
+            revert("Plate does not exist.");
+        }
+    }
 
 }
