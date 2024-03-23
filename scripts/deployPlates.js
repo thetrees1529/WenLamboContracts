@@ -2,6 +2,7 @@
 
 const {ethers} = hre
 
+const beneficiary = "0xABCD0baDa7ad8d922DD687Cc61FFc65c75C2F8FD"
 const price = ethers.parseEther("0.001")
 const maxMinted = 100
 const backgrounds = ["GB", "US"]
@@ -11,7 +12,7 @@ async function main() {
     const plates = await(await ethers.deployContract("Plates")).waitForDeployment()
     const metadata = await (await ethers.deployContract("PlateMetadata", [plates.target])).waitForDeployment()
     const register = await (await ethers.deployContract("PlateRegister", [metadata.target])).waitForDeployment()
-    const mint = await (await ethers.deployContract("MintPlates", [plates.target, register.target, price, maxMinted])).waitForDeployment()
+    const mint = await (await ethers.deployContract("MintPlates", [beneficiary, plates.target, register.target, price, maxMinted])).waitForDeployment()
 
     await(await register.setBackgrounds(backgrounds)).wait()
     await(await plates.grantRole(await plates.MINTER_ROLE(), mint.target)).wait()
