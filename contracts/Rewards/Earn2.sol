@@ -256,7 +256,7 @@ contract Earn2 is AccessControl {
     }
 
 
-    function _doClaim(uint tokenId) private returns(uint outflow) onlyOwnerOf(tokenId) {
+    function _doClaim(uint tokenId) private onlyOwnerOf(tokenId) returns(uint outflow) {
         Nfv storage nfv = nfvInfo[tokenId];
 
         if(!nfv.claimedOnce) {
@@ -281,7 +281,7 @@ contract Earn2 is AccessControl {
         nfv.lastClaim = block.timestamp;
     }
 
-    function _doUpgrade(uint tokenId) private returns(uint inflow, uint outflow) onlyOwnerOf(tokenId) {
+    function _doUpgrade(uint tokenId) private onlyOwnerOf(tokenId) returns(uint inflow, uint outflow) {
         Nfv storage nfv = nfvInfo[tokenId];
         outflow = _doClaim(tokenId);
         Location memory location = nfv.location;
