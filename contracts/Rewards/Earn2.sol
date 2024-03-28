@@ -229,7 +229,7 @@ contract Earn2 is AccessControl {
         _mintTo(msg.sender, total);
     }
 
-    function upgrade(uint tokenId) public onlyOwnerOf(tokenId) {
+    function upgrade(uint tokenId) public {
         (uint inflow, uint outflow) = _doUpgrade(tokenId);
         (bool netInflow, uint payment) = _inflowOutflow(inflow, outflow);
         if(netInflow) {
@@ -256,7 +256,7 @@ contract Earn2 is AccessControl {
     }
 
 
-    function _doClaim(uint tokenId) private returns(uint outflow) {
+    function _doClaim(uint tokenId) private returns(uint outflow) onlyOwnerOf(tokenId) {
         Nfv storage nfv = nfvInfo[tokenId];
 
         if(!nfv.claimedOnce) {
@@ -281,7 +281,7 @@ contract Earn2 is AccessControl {
         nfv.lastClaim = block.timestamp;
     }
 
-    function _doUpgrade(uint tokenId) private returns(uint inflow, uint outflow) {
+    function _doUpgrade(uint tokenId) private returns(uint inflow, uint outflow) onlyOwnerOf(tokenId) {
         Nfv storage nfv = nfvInfo[tokenId];
         outflow = _doClaim(tokenId);
         Location memory location = nfv.location;
