@@ -217,7 +217,7 @@ contract Earn2 is AccessControl {
         newTotalClaimed = nfv.totalClaimed + earned;
     }
 
-    function claim(uint tokenId) public onlyOwnerOf(tokenId) {
+    function claim(uint tokenId) public {
         _mintTo(msg.sender, _doClaim(tokenId));
     }
 
