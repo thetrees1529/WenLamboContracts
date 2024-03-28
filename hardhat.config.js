@@ -16,6 +16,16 @@ module.exports = {
         },
         version: "0.8.19"
       },
+      "contracts/Rewards/Earn2.sol": {
+        settings: {
+          viaIR: true,
+          optimizer: {
+            enabled: true,
+            runs: 1
+          }
+        },
+        version: "0.8.19"
+      },
       "contracts/Migrating/ModsMigration.sol": {
         settings: {
           viaIR: true,
