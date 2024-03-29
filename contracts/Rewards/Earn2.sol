@@ -10,8 +10,27 @@ import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
 import "../Token/Token.sol";
 
 interface IEarn {
+    struct ERC20Token {
+        uint burned;
+        uint reflected;
+    }
 
-    function setLocation(uint tokenId, Location calldata location) external;
+
+    struct Payment {
+        IERC20 token;
+        uint value;
+    }
+
+    struct Substage {
+        string name;
+        Payment[] payments;
+        uint emission;
+    }
+
+    struct Stage {
+        string name;
+        Substage[] substages;
+    }
 
     struct Location {
         uint stage;
@@ -40,6 +59,22 @@ interface IEarn {
         uint totalClaimed;
         Location location;
     }
+
+    function getStages() external view returns(Stage[] memory);
+    function getPayees() external view returns(ERC20Payments.Payee[] memory);
+    function lockRatio() external view returns(Fees.Fee memory);
+    function burnRatio() external view returns(Fees.Fee memory);
+    function interest() external view returns(Fees.Fee memory);
+    function token() external view returns(Token);
+    function nfvs() external view returns(Nfvs);
+    function mintCap() external view returns(uint);
+    function baseEarn() external view returns(uint);
+    function totalMinted() external view returns(uint);
+    function unlockStart() external view returns(uint);
+    function unlockEnd() external view returns(uint);
+    function tokens(IERC20 token) external view returns(ERC20Token memory);
+    function genesis() external view returns(uint);
+
 
     function getInformation(uint tokenId) external view returns(NfvView memory nfv); /**{
         return NfvView({
@@ -89,6 +124,7 @@ contract Earn2 is AccessControl {
         bool claimedOnce;
         uint lastClaim;
         uint locked;
+        uint unlocked;
         uint totalInterestClaimed;
         uint totalClaimed;
         Location location;
@@ -127,35 +163,41 @@ contract Earn2 is AccessControl {
 
     mapping(uint => Nfv) public nfvInfo;
 
-    constructor(IEarn earnOld_, Nfvs nfvs_, Token token_, Stage[] memory stages, Fees.Fee memory lockRatio_, Fees.Fee memory burnRatio_, Fees.Fee memory interest_, uint unlockStart_, uint unlockEnd_, uint baseEarn_, uint mintCap_, ERC20Payments.Payee[] memory payees) {
-        token = token_;
-        nfvs = nfvs_;
-        lockRatio = lockRatio_;
-        burnRatio = burnRatio_;
-        interest = interest_;
-        genesis = block.timestamp;
-        unlockStart = unlockStart_;
-        unlockEnd = unlockEnd_;
-        baseEarn = baseEarn_;
-        mintCap = mintCap_;
+    constructor(IEarn earnOld_) {
         earnOld = earnOld_;
+        genesis = earnOld_.genesis();
+        token = earnOld_.token();
+        nfvs = earnOld_.nfvs();
+        lockRatio = earnOld_.lockRatio();
+        burnRatio = earnOld_.burnRatio();
+        interest = earnOld_.interest();
+        baseEarn = earnOld_.baseEarn();
+        mintCap = earnOld_.mintCap();
+        unlockStart = earnOld_.unlockStart();
+        unlockEnd = earnOld_.unlockEnd();
+        _payees = earnOld_.getPayees();
+        IEarn.Stage[] memory stages = earnOld_.getStages();
+        IEarn.ERC20Token memory stats = earnOld_.tokens(IERC20(address(token)));
+        burned = stats.burned;
+        collected = stats.reflected;
+
+        ERC20Payments.Payee[] memory payees = earnOld_.getPayees();
         for(uint i; i < payees.length; i ++) {
             _payees.push(payees[i]);
         }
         for(uint i; i < stages.length; i ++) {
-            Stage memory stage = stages[i];
+            IEarn.Stage memory stage = stages[i];
             Stage storage _stage = _stages.push();
             _stage.name = stage.name;
             for(uint j; j < stage.substages.length; j ++) {
-                Substage memory substage = stage.substages[j];
+                IEarn.Substage memory substage = stage.substages[j];
                 Substage storage _substage = _stage.substages.push();
                 _substage.name = substage.name;
                 _substage.emission = substage.emission * EARN_SPEED_CONVERSION;
-                _substage.price = substage.price;
+                _substage.price = substage.payments[0].value;
                 
             }
         }
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function getPayees() external view returns(ERC20Payments.Payee[] memory) {return _payees;}
@@ -164,14 +206,14 @@ contract Earn2 is AccessControl {
         return _stages;
     }
 
-    function getInformation(uint tokenId) external view returns(NfvView memory nfv) {
-        (uint earnedNotLocked, uint earnedLocked, uint unlocked, uint interestEarned, uint newTotalLocked, uint newTotalInterestClaimed, uint newTotalClaimed) = claimCalculation(tokenId);
+    function getInformation(uint tokenId) public view returns(NfvView memory nfv) {
+        (uint earnedNotLocked, uint earnedLocked, uint unlocked, uint interestEarned, uint newTotalLocked, uint newUnlocked, uint newTotalInterestClaimed, uint newTotalClaimed) = _claimCalculation(tokenId);
         
         if(nfvInfo[tokenId].claimedOnce) return NfvView({
             claimable: earnedNotLocked + earnedLocked,
             unlockedClaimable: earnedNotLocked,
             lockedClaimable: earnedLocked,
-            locked: newTotalLocked,
+            locked: newTotalLocked - newUnlocked,
             claimableInterest: interestEarned,
             unlockable: unlocked,
             onStages: nfvInfo[tokenId].onStages,
@@ -195,26 +237,19 @@ contract Earn2 is AccessControl {
         }
     }
 
-    function claimCalculation(uint tokenId) public view returns(uint earnedNotLocked, uint earnedLocked, uint unlocked, uint interestEarned, uint newLocked, uint newTotalInterestClaimed, uint newTotalClaimed) {
-        Nfv storage nfv = nfvInfo[tokenId];
-
-        uint claimedOrGenesis = _claimedOrGenesis(tokenId);
-        uint time = block.timestamp - claimedOrGenesis;
-
-        uint earnSpeed = nfv.onStages ? _getSubstage(nfv.location).emission : baseEarn;
-        uint earned = time * earnSpeed;
-
-        earnedLocked = earned.feesOf(lockRatio);
-        earnedNotLocked = earned - earnedLocked;
-        if(block.timestamp > unlockStart) {
-            uint remainingTimeUnlocking = unlockEnd - claimedOrGenesis;
-            unlocked = (nfv.locked * time) / remainingTimeUnlocking;
+    function getInformationMultiple(uint[] calldata tokenIds) external view returns(NfvView[] memory nfvs) {
+        nfvs = new NfvView[](tokenIds.length);
+        for(uint i; i < tokenIds.length; i ++) {
+            nfvs[i] = getInformation(tokenIds[i]);
         }
-        interestEarned = (nfv.locked * time).feesOf(interest);
+    }
 
-        newLocked = nfv.locked + earnedLocked - unlocked;
-        newTotalInterestClaimed = nfv.totalInterestClaimed + interestEarned;
-        newTotalClaimed = nfv.totalClaimed + earned;
+    function addToLocked(uint tokenId, uint value) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        nfvInfo[tokenId].locked += value;
+    }
+
+    function setLocation(uint tokenId, Location memory location) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        nfvInfo[tokenId].location = location;
     }
 
     function claim(uint tokenId) public {
@@ -255,30 +290,61 @@ contract Earn2 is AccessControl {
         }
     }
 
+    function _claimCalculation(uint tokenId) private view returns(uint earnedNotLocked, uint earnedLocked, uint unlocked, uint interestEarned, uint newLocked, uint newUnlocked, uint newTotalInterestClaimed, uint newTotalClaimed) {
+        Nfv storage nfv = nfvInfo[tokenId];
+
+        if(nfv.claimedOnce) {
+            uint claimedOrGenesis = _claimedOrGenesis(tokenId);
+            uint time = block.timestamp - claimedOrGenesis;
+
+            uint earnSpeed = nfv.onStages ? _getSubstage(nfv.location).emission : baseEarn;
+            uint earned = time * earnSpeed * EARN_SPEED_CONVERSION;
+
+            earnedLocked = earned.feesOf(lockRatio);
+            earnedNotLocked = earned - earnedLocked;
+            uint totalLocked = nfv.locked + earnedLocked;
+            unlocked = _unlockCalc(totalLocked, nfv.unlocked);
+            interestEarned = (nfv.locked * time).feesOf(interest);
+
+            newLocked = totalLocked;
+            newUnlocked = nfv.unlocked + unlocked;
+            newTotalInterestClaimed = nfv.totalInterestClaimed + interestEarned;
+            newTotalClaimed = nfv.totalClaimed + earned;
+        } else {
+            IEarn.NfvView memory nfvOld = earnOld.getInformation(tokenId);
+            earnedNotLocked = nfvOld.unlockedClaimable;
+            earnedLocked = nfvOld.lockedClaimable;
+            unlocked = _unlockCalc(nfvOld.locked, nfvOld.nfv.unlocked);
+            interestEarned = nfvOld.interestable;
+            newLocked = nfvOld.locked;
+            newUnlocked = nfvOld.nfv.unlocked + unlocked;
+            newTotalInterestClaimed = nfvOld.nfv.totalInterestClaimed + interestEarned;
+            newTotalClaimed = nfvOld.nfv.totalClaimed + nfvOld.claimable;
+        }
+    }
+
+    function _unlockCalc(uint locked, uint unlocked) private view returns(uint) {
+        if(block.timestamp < unlockStart) return 0;
+        if(block.timestamp > unlockEnd) return locked - unlocked;
+        uint timeSinceUnlockStart = block.timestamp - unlockStart;
+        uint totalTime = unlockEnd - unlockStart;
+        uint timeUnlocking = timeSinceUnlockStart > totalTime ? totalTime : timeSinceUnlockStart;
+        return ((locked * timeUnlocking) / totalTime) - unlocked;
+    }
 
     function _doClaim(uint tokenId) private onlyOwnerOf(tokenId) returns(uint outflow) {
         Nfv storage nfv = nfvInfo[tokenId];
 
-        if(!nfv.claimedOnce) {
-            IEarn.NfvView memory nfvOld = earnOld.getInformation(tokenId);
-            nfv.totalClaimed = nfvOld.nfv.totalClaimed;
-            nfv.totalInterestClaimed = nfvOld.nfv.totalInterestClaimed;
-            nfv.locked = nfvOld.locked + nfvOld.lockedClaimable - nfvOld.unlockable;
-            nfv.onStages = nfvOld.nfv.onStages;
-            nfv.location = Location(nfvOld.nfv.location.stage, nfvOld.nfv.location.substage);
-
-            outflow = nfvOld.unlockedClaimable + nfvOld.unlockable + nfvOld.interestable;
-            nfv.claimedOnce = true;
-        } else {
-            (uint earnedNotLocked,, uint unlocked, uint interestEarned, uint newLocked, uint newTotalInterestClaimed, uint newTotalClaimed) = claimCalculation(tokenId);
-            nfv.locked = newLocked;
-            nfv.totalInterestClaimed = newTotalInterestClaimed;
-            nfv.totalClaimed = newTotalClaimed;
-
-            outflow = earnedNotLocked + unlocked + interestEarned;
-        }
-
+        (uint earnedNotLocked,, uint unlocked, uint interestEarned, uint newLocked, uint newUnlocked, uint newTotalInterestClaimed, uint newTotalClaimed) = _claimCalculation(tokenId);
+        nfv.locked = newLocked;
+        nfv.unlocked = newUnlocked;
+        nfv.totalInterestClaimed = newTotalInterestClaimed;
+        nfv.totalClaimed = newTotalClaimed;
         nfv.lastClaim = block.timestamp;
+
+        outflow = earnedNotLocked + interestEarned + unlocked;
+
+        if(!nfv.claimedOnce) nfv.claimedOnce = true;
     }
 
     function _doUpgrade(uint tokenId) private onlyOwnerOf(tokenId) returns(uint inflow, uint outflow) {
@@ -333,12 +399,12 @@ contract Earn2 is AccessControl {
     function _takePayment(address from, uint total) private {
 
         uint toBurn = total.feesOf(burnRatio);
-        token.burn(toBurn);
+        token.burnFrom(from, toBurn);
 
         burned += toBurn;
         collected += total;
 
-        IERC20(address(token)).splitFrom(from, total, _payees);
+        IERC20(address(token)).splitFrom(from, total - toBurn, _payees);
 
     }
 
