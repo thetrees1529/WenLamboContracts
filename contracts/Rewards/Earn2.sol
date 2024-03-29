@@ -314,9 +314,9 @@ contract Earn2 is AccessControl {
             IEarn.NfvView memory nfvOld = earnOld.getInformation(tokenId);
             earnedNotLocked = nfvOld.unlockedClaimable;
             earnedLocked = nfvOld.lockedClaimable;
-            unlocked = _unlockCalc(nfvOld.locked, nfvOld.nfv.unlocked);
+            unlocked = _unlockCalc(nfvOld.locked + nfvOld.lockedClaimable, nfvOld.nfv.unlocked);
             interestEarned = nfvOld.interestable;
-            newLocked = nfvOld.locked;
+            newLocked = nfvOld.locked + earnedLocked;
             newUnlocked = nfvOld.nfv.unlocked + unlocked;
             newTotalInterestClaimed = nfvOld.nfv.totalInterestClaimed + interestEarned;
             newTotalClaimed = nfvOld.nfv.totalClaimed + nfvOld.claimable;
