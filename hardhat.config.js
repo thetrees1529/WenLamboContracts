@@ -76,7 +76,7 @@ module.exports = {
       accounts: [require("./privateKey.json")]
     },
     avax: {
-      url: "https://rpc.ankr.com/avalanche",
+      url: "https://avalanche.drpc.org",
       accounts: [require("./privateKey.json")]
     }
   } : undefined,

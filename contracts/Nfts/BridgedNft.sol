@@ -11,11 +11,11 @@ contract BridgedNft is Bridgeable, ERC721Enumerable, Nft {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function mintTokenId(address to, uint tokenId) external onlyRole(MINTER_ROLE) {
+    function mintTokenId(address to, uint tokenId) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _mint(to, tokenId);
     }
 
-    function burnTokenId(uint tokenId) external onlyRole(BURNER_ROLE) {
+    function burnTokenId(uint tokenId) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _burn(tokenId);
     }
 

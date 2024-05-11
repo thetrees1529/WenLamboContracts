@@ -116,7 +116,7 @@ contract Marketplace is Ownable, ReentrancyGuard {
     }
 
     function list(IERC721 col, uint tokenId, IERC20 token, uint amount, uint expiry) public nonReentrant onlyWhitelisted(col) onlyWhitelistedToken(token){
-        _onlyOwnerOf(col, tokenId);
+        require(col.ownerOf(tokenId) == msg.sender, "Marketplace: not owner of nft");
         uint listingId = _newId();
         Order storage listing = _listings[listingId] = Order(msg.sender, col, tokenId, token, amount, expiry);
 
@@ -215,7 +215,6 @@ contract Marketplace is Ownable, ReentrancyGuard {
 
     function buy(uint listingId) public payable nonReentrant {
         Order storage listing = _listings[listingId];
-        require(listing.user != address(0), "Marketplace: listing not found");
         require(block.timestamp < listing.expiry, "Marketplace: listing expired");
 
         _transferFunds(listing.token, msg.sender, listing.user, listing.amount);
@@ -233,8 +232,6 @@ contract Marketplace is Ownable, ReentrancyGuard {
 
     function acceptOffer(uint offerId) public nonReentrant {
         Order storage offer_ = _offers[offerId];
-        _onlyOwnerOf(offer_.col, offer_.tokenId);
-        require(offer_.user != address(0), "Marketplace: offer not found");
         require(block.timestamp < offer_.expiry, "Marketplace: offer expired");
 
         _transferFunds(offer_.token, offer_.user, msg.sender, offer_.amount);
@@ -258,8 +255,6 @@ contract Marketplace is Ownable, ReentrancyGuard {
 
     function acceptUniversalOffer(uint universalOfferId, uint tokenId) public nonReentrant {
         UniversalOrder storage universalOffer = _universalOffers[universalOfferId];
-        _onlyOwnerOf(universalOffer.col, tokenId);
-        require(universalOffer.user != address(0), "Marketplace: offer not found");
         require(block.timestamp < universalOffer.expiry, "Marketplace: offer expired");
 
         _transferFunds(universalOffer.token, universalOffer.user, msg.sender, universalOffer.amount);
@@ -291,10 +286,6 @@ contract Marketplace is Ownable, ReentrancyGuard {
         } else {
             token.splitFrom(from, amount, payees);
         }
-    }
-
-    function _onlyOwnerOf(IERC721 col, uint tokenId) private view {
-        require(col.ownerOf(tokenId) == msg.sender, "Marketplace: not owner of nft");
     }
 
 

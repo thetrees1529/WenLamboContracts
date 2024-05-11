@@ -8,8 +8,6 @@ contract WhitelistTickets is Nft {
     using Counters for Counters.Counter;
     constructor(string memory name, string memory symbol, string memory baseURI) Nft( baseURI, name, symbol){
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(MINTER_ROLE, msg.sender);
-        _grantRole(BURNER_ROLE, msg.sender);
     }
     // function supportsInterface(bytes4 interfaceId) public override(ERC721Enumerable, AccessControl) view returns(bool) {
     //     return super.supportsInterface(interfaceId);
@@ -20,10 +18,10 @@ contract WhitelistTickets is Nft {
         for(uint i; i < numberOf; i ++) burnOne(from);
     }
 
-    function mintOne(address account) public onlyRole(MINTER_ROLE) {
+    function mintOne(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _mintOne(account);
     }
-    function burnOne(address from) public onlyRole(BURNER_ROLE) {
+    function burnOne(address from) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _burnOne(from);
     }
 
