@@ -11,6 +11,14 @@ contract HolderMint is Mint {
         whitelistedNft = IERC721Enumerable(nfvs);
     }
 
+    function checkClaimed(uint[] calldata tokenIds) external view returns(bool[] memory) {
+        bool[] memory result = new bool[](tokenIds.length);
+        for(uint i; i < tokenIds.length; i++) {
+            result[i] = claimed[tokenIds[i]];
+        }
+        return result;
+    }
+
     function _beforeMint(address to, uint numberOf) internal override {
         uint balance = whitelistedNft.balanceOf(to);
         uint found;
