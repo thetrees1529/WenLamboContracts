@@ -2,8 +2,8 @@
 pragma solidity 0.8.19;
 
 import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
+import "@thetrees1529/solutils/contracts/gamefi/Nft.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../Nfvs/Nfvs.sol";
 
 contract MintWithTokens is Ownable { 
     using ERC20Payments for IERC20;
@@ -15,9 +15,9 @@ contract MintWithTokens is Ownable {
     uint public totalMinted;
     //maximum number of nfvs minted through this contract
     uint public maxMinted;
-    Nfvs internal _nfvs;
+    Nft internal _nfvs;
     ERC20Payments.Payee[] private _payees;
-    constructor(Nfvs nfvs, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees) {
+    constructor(Nft nfvs, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees) {
         for(uint i; i < payees.length; i ++) {
             _payees.push(payees[i]);
         }

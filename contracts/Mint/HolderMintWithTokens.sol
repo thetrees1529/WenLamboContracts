@@ -1,13 +1,13 @@
 //SPDX-License-Identifier: Unlicensed
 
 pragma solidity 0.8.19;
-import "./Mint.sol";
+import "./MintWithTokens.sol";
 
-contract HolderMint is Mint {
+contract HolderMintWithTokens is MintWithTokens {
     IERC721Enumerable public whitelistedNft;
     mapping(uint => bool) public claimed;
 
-    constructor(Nft nfvs, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) Mint(nfvs, mintPrice_, maxMinted_, payees) {
+    constructor(Nft nfvs, uint mintPrice_, uint maxMinted_, IERC20 token_, ERC20Payments.Payee[] memory payees) MintWithTokens(nfvs, mintPrice_, maxMinted_, token_, payees) {
         whitelistedNft = IERC721Enumerable(nfvs);
     }
 
