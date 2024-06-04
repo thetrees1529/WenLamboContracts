@@ -20,6 +20,7 @@ contract FinalEarn {
         Earn.Location location;
     }
 
+    uint private constant _MAX_MINTED = 200e24;
     uint private _earnSpeedConversion;
     Nfvs private _nfvs;
     uint private _baseEarn;
@@ -55,8 +56,8 @@ contract FinalEarn {
         }
     }
 
-    function getInfo() external view returns(uint baseEarn, Earn.Stage[] memory stages, Token token, uint burned, uint totalMinted, Nfvs nfvs, Earn earn, uint earnSpeedConversion) {
-        return (_baseEarn, _stages, _token, _burned, _totalMinted, _nfvs, _earn, _earnSpeedConversion);
+    function getInfo() external view returns(uint baseEarn, Earn.Stage[] memory stages, Token token, uint burned, uint totalMinted, Nfvs nfvs, Earn earn, uint earnSpeedConversion, uint MAX_MINTED) {
+        return (_baseEarn, _stages, _token, _burned, _totalMinted, _nfvs, _earn, _earnSpeedConversion, _MAX_MINTED);
     }
 
     function getNfvInfos(uint[] calldata tokenIds) external view returns(InfoOutput[] memory infoOutputs) {
@@ -115,6 +116,7 @@ contract FinalEarn {
         }
         _token.mintTo(msg.sender, toClaim);
         _totalMinted += toClaim;
+        require(_totalMinted <= _MAX_MINTED/*, "Max minted reached."*/);
     }
 
     function _claimOrMigrate(uint tokenId, Info storage _info) private returns(uint toClaim) {
