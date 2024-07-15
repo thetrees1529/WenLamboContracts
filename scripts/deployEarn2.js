@@ -1,5 +1,5 @@
 const {ethers} = hre
-const earnOld = "0xCa8454a254AAC452a609c376F1959303be4Bf2B0"
+const earnOld = "0x8880314DdEF310169bdCF1f7e2138D3Ed669Cf7A"
 async function main() {
     const earn2 = await (await ethers.deployContract("FinalEarn", [earnOld])).waitForDeployment()
     const token = await ethers.getContractAt("Token", (await earn2.getInfo()).token)

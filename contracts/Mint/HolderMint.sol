@@ -7,8 +7,8 @@ contract HolderMint is Mint {
     IERC721Enumerable public whitelistedNft;
     mapping(uint => bool) public claimed;
 
-    constructor(Nft nfvs, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) Mint(nfvs, mintPrice_, maxMinted_, payees) {
-        whitelistedNft = IERC721Enumerable(nfvs);
+    constructor(IERC721Enumerable whitelistedNft_,Nft nfvs, uint mintPrice_, uint maxMinted_, Payments.Payee[] memory payees) Mint(nfvs, mintPrice_, maxMinted_, payees) {
+        whitelistedNft = whitelistedNft_;
     }
 
     function checkClaimed(uint[] calldata tokenIds) external view returns(bool[] memory) {
