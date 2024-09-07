@@ -38,11 +38,12 @@ contract CoinFlip is Ownable, Randomness {
         return (_token, _maxBet, _feeOnWin, _requests.length);
     }
 
-    function getGames(uint skip, uint count) external view returns(Game[] memory games) {
-        games = new Game[](count);
-        uint start = _requests.length - 1 - skip;
-        for (uint i = start; i - start < count; i ++) {
-            games[i - start] = _requestToGames[_requests[start - (i - start)]];
+    function getGames(uint start, uint end) external view returns(Game[] memory games) {
+        require(start < _requests.length && end < _requests.length);
+        games = new Game[](end - start + 1);
+        for (uint i = start; i <= end; i++) {
+            uint index = i - start;
+            games[index] = _requestToGames[_requests[index]];
         }
     }
 
