@@ -42,8 +42,7 @@ contract CoinFlip is Ownable, Randomness {
         require(start < _requests.length && end < _requests.length);
         games = new Game[](end - start + 1);
         for (uint i = start; i <= end; i++) {
-            uint index = i - start;
-            games[index] = _requestToGames[_requests[index]];
+            games[i - start] = _requestToGames[_requests[i]];
         }
     }
 
