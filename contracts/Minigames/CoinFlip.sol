@@ -1,85 +1,76 @@
-//SPDX-License-Idenfifier: Unlicensed
+//SPDX-License-Identifier: Unlicensed
 pragma solidity 0.8.19;
-import "@thetrees1529/solutils/contracts/payments/ERC20Payments.sol";
+
+import "../Utils/Randomness.sol";
+import "../Token/Token.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "@chainlink/contracts/src/v0.8/vrf/VRFV2WrapperConsumerBase.sol";
 
-contract CoinFlip is Ownable, VRFV2WrapperConsumerBase {
+contract CoinFlip is Ownable, Randomness {
 
-    using ERC20Payments for IERC20;
+    Token private _token;
+    uint private _maxBet = 2;
+    uint private _feeOnWin = 3;
 
-    enum Result {
-        UNDECIDED,
-        HEADS,
-        TAILS
+    constructor(Token token, address wrapper)
+        Randomness(wrapper)
+    {
+        _token = token;
     }
 
-    enum Guess {
-        HEADS,
-        TAILS
+    enum Result {
+        Heads,
+        Tails
     }
 
     struct Game {
         address player;
         uint bet;
-        uint toWin;
-        Guess guess;
+        bool flipped;
+        uint winnings;
+        Result guess;
         Result result;
     }
 
-    //VRF
-    uint32 public gasLimit;
-    uint16 public confirmations;
-    address public LINK;
-    IUniswapV2Router02 public router;
+    mapping(uint => Game) private _requestToGames;
+    uint[] private _requests;
 
-    Game[] private games;
-    IERC20 public token;
-    uint public feePercentage;
-    uint public maxBetPercentage;
-    address public feeRecipient;
-
-    mapping(uint => Game) private _requestToGame;
-
-    constructor(address wrapper, uint32 gasLimit_, uint16 confirmations_, address LINK_, IUniswapV2Router02 router_, IERC20 token_, uint feePercentage_, uint maxBetPercentage_, address feeRecipient_) VRFV2WrapperConsumerBase(LINK_, wrapper_) {
-        wrapper = wrapper_;
-        gasLimit = gasLimit_;
-        confirmations = confirmations_;
-        LINK = LINK_;
-        router = router_;
-        
-        token = token_;
-        feePercentage = feePercentage_;
-        maxBetPercentage = maxBetPercentage_;
-        feeRecipient = feeRecipient_;
+    function getInfo() external view returns(Token token, uint maxBet, uint feeOnWin, uint gameCount) {
+        return (_token, _maxBet, _feeOnWin, _requests.length);
     }
 
-    function quoteToWin(uint betAmount) public view returns(uint fee, uint toWin) {
-        fee = (betAmount * feePercentage) / 100;
-        toWin = (betAmount - fee) * 2;
+    function getGames(uint skip, uint count) external view returns(Game[] memory games) {
+        games = new Game[](count);
+        uint start = _requests.length - 1 - skip;
+        for (uint i = start; i - start < count; i ++) {
+            games[i - start] = _requestToGames[_requests[start - (i - start)]];
+        }
     }
 
-    function flip(uint bet, Guess guess) external {
-        require(bet <= (token.balanceOf(address(this)) * maxBetPercentage) / 100, "Bet is too high");
-        (uint fee, uint toWin) = quoteToWin(bet);
-        token.sendFrom(msg.sender, address(this), bet - fee);
-        token.sendFrom(msg.sender, feeRecipient, fee);
-        _requestToGame[requestRandomness(gasLimit, confirmations, 1)] = _games.push(Game(msg.sender, bet, toWin, guess, Result.UNDECIDED));
+    function flip(Result guess, uint amount) external payable {
+        require(amount <= (_maxBet * _token.balanceOf(address(this))) / 100);
+        uint id = _requestRandomNumber();
+        _requestToGames[id] = Game(msg.sender, amount, false, 0, guess, Result.Heads);
+        _requests.push(id);
+        _token.transferFrom(msg.sender, address(this), amount);
+        (bool success,) = msg.sender.call{value: address(this).balance}("");
+        require(success, "Transfer failed.");
     }
 
-    function fulfillRandomness(bytes32 requestId, uint[] memory randomWords) internal override {
-        Game storage _game = _requestToGame[requestId];
-        _game.result = randomWords[0] % 2 == 0 ? Result.HEADS : Result.TAILS;
-        if(_game.result == Result.HEADS && _game.guess == Guess.HEADS || _game.result == Result.TAILS && _game.guess == Guess.TAILS) {
-            token.transfer(_game.player, _game.toWin);
+    function _receiveRandomNumber(uint requestId, uint randomNumber) internal override {
+        Game storage game = _requestToGames[requestId];
+        game.result = Result(randomNumber % 2);
+        game.flipped = true;
+        if (game.guess == game.result) {
+            uint proceeds = game.bet * 2;
+            uint fee = (proceeds * _feeOnWin) / 100;
+            game.winnings = proceeds - fee;
+            _token.transfer(game.player, game.winnings);
+            _token.burn(fee);
         }
     }
 
     function withdraw(uint amount) external onlyOwner {
-        token.transfer(msg.sender, amount);
+        _token.transfer(msg.sender, amount);
     }
-
-    
 
 }
